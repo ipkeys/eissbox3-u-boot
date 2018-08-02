@@ -85,6 +85,7 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 	};
+
 };
 
 
@@ -160,67 +161,105 @@
 		>;											
 	};											
 
-	emu2_pins: pinmux_emu2_pins {
-		pinctrl-single,pins = <											
-			0x1A4 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE4) /* JTAG_EMU2, #115 (used same settings as EMU0 and EMU1 for I/O, slew, and pullup) */
-		>;											
-	};											
-
 	rtc_pins: pinmux_rtc_pins {
 		pinctrl-single,pins = <											
-			0x1B0 (PIN_OUTPUT | MUX_MODE7) /* RTC_INT, #19, setup as GPIO for now - 
-			See firmware/capes/BB-BONE-CRYPTO-00A0.dts and BB-BONE-RTC-00A0.dts - 
-			uses ds1307 driver for RTC */
+			0x1B0 (PIN_OUTPUT | MUX_MODE7) /* RTC_INT, # - uses DS1307 driver for RTC */
 		>;											
 	};
 
+	emu2_pins: pinmux_emu2_pins {
+		pinctrl-single,pins = <											
+			0x1A4 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE4) /* JTAG_EMU2, #115 */
+		>;											
+	};											
+
 	clkout2_pin: pinmux_clkout2_pin {
 		pinctrl-single,pins = <
-			0x1B4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3) /* xdma_event_intr1.clkout2 */
+			0x1B4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3) /* clkout2 */
 		>;
 	};
 
 	cpsw_default: cpsw_default {
 		pinctrl-single,pins = <
-			/* Slave 1 */
-			0x108 (PIN_INPUT | MUX_MODE0)			/* mii1_col */
-			0x10c (PIN_INPUT | MUX_MODE0)			/* mii1_crs */
+			/* Slave 1 eth0 */
 
-			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr */
-			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen */
-			0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv */
-			0x11C (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd3 */
-			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd2 */
-			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd1 */
-			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd0 */
-			0x12C (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_txclk */
-			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxclk */
-			0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd3 */
-			0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd2 */
-			0x13C (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd1 */
-			0x140 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd0 */
+			/* 0x108 (PIN_INPUT | MUX_MODE0)		*/	/* mii1_col */
+			/* 0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	*/  /* mii1_rxerr */
+			/* 0x10c (PIN_INPUT | MUX_MODE0)		*/	/* mii1_crs */
+			
+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_tctl */
+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rctl */
+			0x11C (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td3 */
+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td2 */
+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td1 */
+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td0 */
+			0x12C (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_tclk */
+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rclk */
+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd3 */
+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd2 */
+			0x13C (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd1 */
+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd0 */
+
+			/* Slave 2 eth1 */
+
+			/* 0x70 (PULL_DISABLE | MUX_MODE1) */       /* mii2_crs */
+			/* 0x74 (PIN_INPUT_PULLUP | MUX_MODE1) */   /* mii2_rxerr */
+			/* 0x78 (PULL_DISABLE | MUX_MODE1) */       /* mii2_col */
+
+			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_tctl */
+			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rctl */
+			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_td3 */
+			0x4C (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_td2 */
+			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_td1 */
+			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_td0 */
+			0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_tclk */
+			0x5C (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rclk */
+			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rd3 */
+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rd2 */
+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rd1 */
+			0x6C (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rd0 */
 		>;
 	};
 
 	cpsw_sleep: cpsw_sleep {
 		pinctrl-single,pins = <
-			/* Slave 1 reset value */
-			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			/* Slave 1 eth0 reset value */
 
-			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			/* 0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+			/* 0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+			/* 0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+
 			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-			0x11C (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-			0x12C (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-			0x13C (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+
+			/* Slave 2 eth0 reset value*/
+
+			/* 0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+			/* 0x74 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+			/* 0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
+
+			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x58 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x5c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 		>;
 	};
 
@@ -240,26 +279,6 @@
 		>;
 	};
 
-	eth2_pins: pinmux_eth2_pins {
-		pinctrl-single,pins = <											
-			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii2_txen */
-			0x44 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxdv */
-			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii2_txd3 */
-			0x4C (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii2_txd2 */
-			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii2_txd1 */
-			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii2_txd0 */
-			0x58 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_txclk */
-			0x5C (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxclk */
-			0x60 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxd3 */
-			0x64 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxd2 */
-			0x68 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxd1 */
-			0x6C (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxd0 */
-			0x70 (PULL_DISABLE | MUX_MODE1)        /* mii2_crs */
-			0x74 (PIN_INPUT_PULLUP | MUX_MODE1)    /* mii2_rxerr */
-			0x78 (PULL_DISABLE | MUX_MODE1)        /* mii2_col */
-		>;											
-	};											
-
 	test_pins: pinmux_test_pins {
 		pinctrl-single,pins = <											
 			0x1A0 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP41, #114 */
@@ -267,8 +286,8 @@
 			0x154 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP32, #3 */
 			0x150 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP31, #2 */
 			0x16C (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP33, #41 */
-			/* 0x178 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP34, #12 i2c2!! */
-			/* 0x17C (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP35, #13 i2c2!! */
+			0x178 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP34, #12 i2c2!! */
+			0x17C (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP35, #13 i2c2!! */
 			0x120 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP23, #22 */
 			0x124 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP24, #23 */
 			0x128 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP25, #26 */
@@ -291,13 +310,14 @@
 		>;
 	};
 
+/*
 	i2c2_pins: pinmux_i2c2_pins {
 		pinctrl-single,pins = <
 			0x178 (PIN_INPUT_PULLUP | MUX_MODE3) /* i2c2_sda */
-			0x17C (PIN_INPUT_PULLUP | MUX_MODE3) /* i2c2_scl */
-		>;
+/*			0x17C (PIN_INPUT_PULLUP | MUX_MODE3) /* i2c2_scl */
+/*		>;
 	};
-
+*/
 	emmc_rst_pins: pinmux_emmc_rst_pins {
 		pinctrl-single,pins = <											
 			0x7C (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* EMMC_RST_INT, #61 */
@@ -335,7 +355,6 @@
 
 &rtc {
 	status = "disabled";
-	/* system-power-controller; */
 };
 
 &uart0 {
@@ -410,8 +429,16 @@
 };
 
 /*
- * eth0
+ * eth0, eth1
  */
+&mac {
+	status = "okay";
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&cpsw_default>;
+	pinctrl-1 = <&cpsw_sleep>;
+	dual_emac;
+};
+
 &davinci_mdio {
 	status = "okay";
 	pinctrl-names = "default", "sleep";
@@ -421,19 +448,14 @@
 
 &cpsw_emac0 {
 	phy_id = <&davinci_mdio>, <0>;
-	phy-mode = "mii";
+	phy-mode = "rgmii-txid";
+	dual_emac_res_vlan = <1>;
 };
 
 &cpsw_emac1 {
 	phy_id = <&davinci_mdio>, <1>;
-	phy-mode = "mii";
-};
-
-&mac {
-	status = "okay";
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&cpsw_default>;
-	pinctrl-1 = <&cpsw_sleep>;
+	phy-mode = "rgmii-txid";
+	dual_emac_res_vlan = <2>;
 };
 
 /*
@@ -492,6 +514,11 @@
 	interrupts = <7>; /* NNMI */
 
 	ti,pmic-shutdown-controller;
+
+	pwrbutton {
+		interrupts = <2>;
+		status = "okay";
+	};
 
 	regulators {
 		dcdc1_reg: regulator@0 {

@@ -29,82 +29,75 @@
 /* Always 128 KiB env size */
 #define CONFIG_ENV_SIZE			SZ_128K
 
-#define BOOTENV_DEV_LEGACY_MMC(devtypeu, devtypel, instance) \
-	"bootcmd_" #devtypel #instance "=" \
-	"setenv mmcdev " #instance"; "\
-	"setenv bootpart " #instance":2 ; "\
-	"run mmcboot\0"
-
-#define BOOTENV_DEV_NAME_LEGACY_MMC(devtypeu, devtypel, instance) \
-	#devtypel #instance " "
-
-#if CONFIG_IS_ENABLED(CMD_PXE)
-# define BOOT_TARGET_PXE(func) func(PXE, pxe, na)
-#else
-# define BOOT_TARGET_PXE(func)
-#endif
-
-#if CONFIG_IS_ENABLED(CMD_DHCP)
-# define BOOT_TARGET_DHCP(func) func(DHCP, dhcp, na)
-#else
-# define BOOT_TARGET_DHCP(func)
-#endif
-
-#define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 0) \
-	func(LEGACY_MMC, legacy_mmc, 0) \
-	func(MMC, mmc, 1) \
-	func(LEGACY_MMC, legacy_mmc, 1) \
-	BOOT_TARGET_PXE(func) \
-	BOOT_TARGET_DHCP(func)
-
 #include <config_distro_bootcmd.h>
 
 #ifndef CONFIG_SPL_BUILD
-#include <environment/ti/dfu.h>
-#include <environment/ti/mmc.h>
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	DEFAULT_LINUX_BOOT_ENV \
-	DEFAULT_MMC_TI_ARGS \
-	DEFAULT_FIT_TI_ARGS \
-	"bootpart=0:2\0" \
+	"loadaddr=0x82000000\0" \
+	"fdtaddr=0x88000000\0" \
+	"bootenvfile=uEnv.txt\0" \
 	"bootdir=/boot\0" \
 	"bootfile=zImage\0" \
-	"fdtfile=am3352-eissbox3.dtb\0" \
+	"fdtfile=dtBlob\0" \
 	"console=ttyS0,115200n8\0" \
-	"partitions=" \
-		"uuid_disk=${uuid_gpt_disk};" \
-		"name=bootloader,start=384K,size=1792K," \
-			"uuid=${uuid_gpt_bootloader};" \
-		"name=rootfs,start=2688K,size=-,uuid=${uuid_gpt_rootfs}\0" \
+	"mmcdev=0\0" \
+	"bootpart=0:2\0" \
 	"optargs=\0" \
-	"ramroot=/dev/ram0 rw\0" \
-	"ramrootfstype=ext2\0" \
-	"ramargs=setenv bootargs console=${console} " \
+	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenvfile}\0" \
+	"importbootenv=echo Importing environment from mmc${mmcdev} ...; " \
+		"env import -t ${loadaddr} ${filesize}\0" \
+	"envboot=mmc dev ${mmcdev}; " \
+		"if mmc rescan; " \
+		"then " \
+			"echo uSD card found; setenv mmcdev 0; " \
+		"else " \
+			"echo No uSD card, switch to eMMC; setenv mmcdev 1; " \
+		"fi; " \
+		"mmc dev ${mmcdev}; " \
+		"setenv bootpart ${mmcdev}:2; " \
+		"echo Loading boot enviroment from ${bootenvfile} on mmc${mmcdev} ...; " \
+		"if run loadbootenv; " \
+		"then " \
+			"run importbootenv; " \
+		"fi; " \
+		"if test -n $startcmd; " \
+		"then " \
+			"echo Running startcmd ...; " \
+			"run startcmd;" \
+		"fi;\0" \
+	"cmdline=init=/lib/systemd/systemd\0" \
+	"mmcloadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"mmcloadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
+	"mmcargs=setenv bootargs console=${console} " \
 		"${optargs} " \
-		"root=${ramroot} " \
-		"rootfstype=${ramrootfstype}\0" \
-	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
-	"ramboot=echo Booting from ramdisk ...; " \
-		"run ramargs; " \
-		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
-	"findfdt="\
-		"setenv fdtfile am3352-eissbox3.dtb; \0" \
-	"init_console=" \
-			"setenv console ttyS0,115200n8; \0" \
-	NETARGS \
-	DFUARGS \
-	BOOTENV
+		"root=/dev/mmcblk0p2 " \
+		"rootfstype=ext4 rootwait ${cmdline}\0" \
+	"mmcboot=echo Booting from mmc${mmcdev} ...; " \
+		"run mmcloadimage; " \
+		"run mmcloadfdt; " \
+		"run mmcargs; " \
+		"bootz ${loadaddr} - ${fdtaddr}\0" \
+	"nfsopts=nolock\0" \
+	"rootpath=/export/rootfs\0" \
+	"netloadimage=tftp ${loadaddr} ${bootfile}\0" \
+	"netloadfdt=tftp ${fdtaddr} ${fdtfile}\0" \
+	"netargs=setenv bootargs console=${console} " \
+		"${optargs} " \
+		"root=/dev/nfs " \
+		"nfsroot=${serverip}:${rootpath},${nfsopts}\0" \
+	"netboot=echo Booting from network ...; " \
+		"setenv autoload no; " \
+		"dhcp; " \
+		"run netloadimage; " \
+		"run netloadfdt; " \
+		"run netargs; " \
+		"bootz ${loadaddr} - ${fdtaddr}\0"
 #endif
+
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* UART0 */
-#define CONFIG_SYS_NS16550_COM2		0x48022000	/* UART1 */
-#define CONFIG_SYS_NS16550_COM3		0x48024000	/* UART2 */
-#define CONFIG_SYS_NS16550_COM4		0x481a6000	/* UART3 */
-#define CONFIG_SYS_NS16550_COM5		0x481a8000	/* UART4 */
-#define CONFIG_SYS_NS16550_COM6		0x481aa000	/* UART5 */
 
 /* PMIC support */
 #define CONFIG_POWER_TPS65217
@@ -142,14 +135,6 @@
 /* disable EFI partitions and partition UUID support */
 #endif
 
-/* USB Device Firmware Update support */
-#ifndef CONFIG_SPL_BUILD
-#define DFUARGS \
-	DFU_ALT_INFO_EMMC \
-	DFU_ALT_INFO_MMC \
-	DFU_ALT_INFO_RAM
-#endif
-
 #if defined(CONFIG_EMMC_BOOT)
 #define CONFIG_SYS_MMC_ENV_DEV		1
 #define CONFIG_SYS_MMC_ENV_PART		0
@@ -161,8 +146,6 @@
 
 /* Network. */
 #define CONFIG_PHY_SMSC
-/* Enable Atheros phy driver */
-#define CONFIG_PHY_ATHEROS
 
 #ifdef CONFIG_DRIVER_TI_CPSW
 #define CONFIG_CLOCK_SYNTHESIZER

@@ -61,31 +61,6 @@ static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 #define GPIO0_IRQSTATUSRAW	(AM33XX_GPIO0_BASE + 0x024)
 #define GPIO1_IRQSTATUSRAW	(AM33XX_GPIO1_BASE + 0x024)
 
-#define NOT_POP		0x0
-#define PINS_TAKEN	0x0
-
-#define UNK_BASE_DTB	0x0
-#define BB_BASE_DTB		0x1
-#define BBB_BASE_DTB	0x2
-#define BBBL_BASE_DTB	0x3
-#define BBE_BASE_DTB	0x4
-
-#define BBB_EMMC	0x1
-
-#define BBB_TDA998X_AUDIO	0x1
-#define BBB_TDA998X_NAUDIO	0x2
-#define BBB_ADV7511_AUDIO	0x3
-#define BBB_ADV7511_NAUDIO	0x4
-
-#define BBB_ADC		0x1
-
-#define BBBW_WL1835	0x1
-#define BBGW_WL1835	0x2
-
-#define M_BBG1	0x01
-#define M_OS00	0x02
-
-
 #ifndef CONFIG_DM_SERIAL
 struct serial_device *default_serial_console(void)
 {
@@ -313,54 +288,6 @@ void sdram_init(void)
 }
 #endif
 
-#if !defined(CONFIG_SPL_BUILD) || \
-	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
-/*
-static void request_and_set_gpio(int gpio, char *name, int val)
-{
-	int ret;
-
-	ret = gpio_request(gpio, name);
-	if (ret < 0) {
-		printf("%s: Unable to request %s\n", __func__, name);
-		return;
-	}
-
-	ret = gpio_direction_output(gpio, 0);
-	if (ret < 0) {
-		printf("%s: Unable to set %s  as output\n", __func__, name);
-		goto err_free_gpio;
-	}
-
-	gpio_set_value(gpio, val);
-
-	return;
-
-err_free_gpio:
-	gpio_free(gpio);
-}
-*/
-
-#define REQUEST_AND_SET_GPIO(N)	request_and_set_gpio(N, #N, 1);
-#define REQUEST_AND_CLR_GPIO(N)	request_and_set_gpio(N, #N, 0);
-
-/**
- * RMII mode on ICEv2 board needs 50MHz clock. Given the clock
- * synthesizer With a capacitor of 18pF, and 25MHz input clock cycle
- * PLL1 gives an output of 100MHz. So, configuring the div2/3 as 2 to
- * give 50MHz output for Eth0 and 1.
- */
-/*
-static struct clk_synth cdce913_data = {
-	.id = 0x81,
-	.capacitor = 0x90,
-	.mux = 0x6d,
-	.pdiv2 = 0x2,
-	.pdiv3 = 0x2,
-};
-*/
-#endif
-
 /*
  * Basic board specific setup.  Pinmux has been handled already.
  */
@@ -401,20 +328,6 @@ int board_late_init(void)
 	uint32_t mac_hi, mac_lo;
 #endif
 
-#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	char *name = "EISSBOX3";
-	puts("Model: IPKeys EISSBox3\n");
-
-	set_board_info_env(name);
-
-	/*
-	 * Default FIT boot on HS devices. Non FIT images are not allowed
-	 * on HS devices.
-	 */
-	if (get_device_type() == HS_DEVICE)
-		env_set("boot_fit", "1");
-#endif
-
 #if !defined(CONFIG_SPL_BUILD)
 	/* try reading mac address from efuse */
 	mac_lo = readl(&cdev->macid0l);
@@ -446,14 +359,6 @@ int board_late_init(void)
 		if (is_valid_ethaddr(mac_addr))
 			eth_env_set_enetaddr("eth1addr", mac_addr);
 	}
-#endif
-
-#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-#ifdef CONFIG_TI_I2C_BOARD_DETECT
-/*
-	Do not detect cape - no EEPROM on EISSBox3
-*/
-#endif
 #endif
 
 	return 0;
@@ -577,21 +482,6 @@ int board_eth_init(bd_t *bis)
 #endif
 
 #endif /* CONFIG_DM_ETH */
-
-#ifdef CONFIG_SPL_LOAD_FIT
-int board_fit_config_name_match(const char *name)
-{
-	//FIME: we currently dont use this, yet...
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_TI_SECURE_DEVICE
-void board_fit_image_post_process(void **p_image, size_t *p_size)
-{
-	secure_boot_verify_image(p_image, p_size);
-}
-#endif
 
 #if !CONFIG_IS_ENABLED(OF_CONTROL)
 static const struct omap_hsmmc_plat am335x_mmc0_platdata = {
