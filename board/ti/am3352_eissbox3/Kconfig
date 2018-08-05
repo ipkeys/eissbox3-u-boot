@@ -14,13 +14,9 @@ config SYS_CONFIG_NAME
 
 config EISSBOX3_COMMON_CMD_OPTIONS
 	bool "Enable cmd options on EISSBOX3 board"
-	imply CMD_ASKENV
 	imply CMD_BOOTZ
 	imply CRC32_VERIFY if ARCH_KEYSTONE
-	imply CMD_DFU if USB_GADGET_DOWNLOAD
 	imply CMD_DHCP
-	imply CMD_EEPROM
-	imply CMD_EXT2
 	imply CMD_EXT4
 	imply CMD_EXT4_WRITE
 	imply CMD_FAT

@@ -29,6 +29,10 @@
 /* Always 128 KiB env size */
 #define CONFIG_ENV_SIZE			SZ_128K
 
+#define BOOT_TARGET_DEVICES(func) \
+	func(MMC, mmc, 0) \
+	func(MMC, mmc, 1)
+
 #include <config_distro_bootcmd.h>
 
 #ifndef CONFIG_SPL_BUILD
@@ -71,7 +75,7 @@
 	"mmcloadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"${optargs} " \
-		"root=/dev/mmcblk0p2 " \
+		"root=/dev/mmcblk${mmcdev}p2 " \
 		"rootfstype=ext4 rootwait ${cmdline}\0" \
 	"mmcboot=echo Booting from mmc${mmcdev} ...; " \
 		"run mmcloadimage; " \
