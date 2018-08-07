@@ -1,0 +1,38 @@
+if TARGET_AM3352_EISSBOX3
+
+config SYS_BOARD
+	default "am3352_eissbox3"
+
+config SYS_VENDOR
+	default "ti"
+
+config SYS_SOC
+	default "am33xx"
+
+config SYS_CONFIG_NAME
+	default "am3352_eissbox3"
+
+config EISSBOX3_COMMON_CMD_OPTIONS
+	bool "Enable cmd options on EISSBOX3 board"
+	imply CMD_BOOTZ
+#	imply CRC32_VERIFY if ARCH_KEYSTONE
+	imply CMD_NET
+	imply CMD_DHCP
+	imply CMD_EXT4
+	imply CMD_EXT4_WRITE
+	imply CMD_FAT
+	imply FAT_WRITE if CMD_FAT
+	imply CMD_FS_GENERIC
+	imply CMD_GPIO
+	imply CMD_GPT
+	imply CMD_I2C
+	imply CMD_MII
+	imply CMD_MMC
+	imply CMD_PART
+	imply CMD_PING
+	imply CMD_PMIC if DM_PMIC
+	imply CMD_REGULATOR if DM_REGULATOR
+	imply CMD_TIME
+	imply CMD_USB if USB
+
+endif

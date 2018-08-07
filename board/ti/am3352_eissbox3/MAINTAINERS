@@ -1,0 +1,6 @@
+AM3352 EISSBox3 BOARD
+M:	Yuriy Kozhynov <ykozhynov@ipkeys.com>
+S:	Maintained
+F:	board/ti/am3352_eissbox3/
+F:	include/configs/am3352_eissbox3.h
+F:	configs/am3352_eissbox3_defconfig
