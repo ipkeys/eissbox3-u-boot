@@ -22,7 +22,6 @@
 
 #define CONFIG_REMAKE_ELF
 #define CONFIG_FSL_LAYERSCAPE
-#define CONFIG_MP
 
 #include <asm/arch/stream_id_lsch3.h>
 #include <asm/arch/config.h>
@@ -196,17 +195,17 @@ unsigned long long get_qixis_addr(void);
 
 #if defined(CONFIG_QSPI_BOOT)
 #define CONFIG_BOOTCOMMAND	"sf probe 0:0;" \
-				"sf read 0x80200000 0xd00000 0x100000;"\
-				" fsl_mc apply dpl 0x80200000 &&" \
+				"sf read 0x80001000 0xd00000 0x100000;"\
+				" fsl_mc lazyapply dpl 0x80001000 &&" \
 				" sf read $kernel_load $kernel_start" \
 				" $kernel_size && bootm $kernel_load"
 #elif defined(CONFIG_SD_BOOT)
-#define CONFIG_BOOTCOMMAND	"mmcinfo;mmc read 0x80200000 0x6800 0x800;"\
-				" fsl_mc apply dpl 0x80200000 &&" \
+#define CONFIG_BOOTCOMMAND	"mmcinfo;mmc read 0x80001000 0x6800 0x800;"\
+				" fsl_mc lazyapply dpl 0x80001000 &&" \
 				" mmc read $kernel_load $kernel_start" \
 				" $kernel_size && bootm $kernel_load"
 #else /* NOR BOOT*/
-#define CONFIG_BOOTCOMMAND	"fsl_mc apply dpl 0x580d00000 &&" \
+#define CONFIG_BOOTCOMMAND	"fsl_mc lazyapply dpl 0x580d00000 &&" \
 				" cp.b $kernel_start $kernel_load" \
 				" $kernel_size && bootm $kernel_load"
 #endif
@@ -216,7 +215,6 @@ unsigned long long get_qixis_addr(void);
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 					sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE /* Boot args buffer */
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
@@ -226,7 +224,6 @@ unsigned long long get_qixis_addr(void);
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv8/u-boot-spl.lds"
 #define CONFIG_SPL_MAX_SIZE            0x16000
 #define CONFIG_SPL_STACK               (CONFIG_SYS_FSL_OCRAM_BASE + 0x9ff0)
-#define CONFIG_SPL_TARGET              "u-boot-with-spl.bin"
 #define CONFIG_SPL_TEXT_BASE           0x1800a000
 
 #define CONFIG_SYS_SPL_MALLOC_SIZE     0x00100000

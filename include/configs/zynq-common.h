@@ -40,10 +40,6 @@
 # define CONFIG_BOOTP_MAY_FAIL
 #endif
 
-/* SPI */
-#ifdef CONFIG_ZYNQ_SPI
-#endif
-
 /* QSPI */
 #ifdef CONFIG_ZYNQ_QSPI
 # define CONFIG_SF_DEFAULT_SPEED	30000000
@@ -69,7 +65,6 @@
 #ifdef CONFIG_NAND_ZYNQ
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_ONFI_DETECTION
-#define CONFIG_MTD_DEVICE
 #endif
 
 #ifdef CONFIG_USB_EHCI_ZYNQ
@@ -125,21 +120,8 @@
 # define CONFIG_SYS_EEPROM_SIZE			1024 /* Bytes */
 #endif
 
-/* Total Size of Environment Sector */
-#ifndef CONFIG_ENV_SIZE
-# define CONFIG_ENV_SIZE			(128 << 10)
-#endif
-
 /* Allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
-
-/* Environment */
-#ifndef CONFIG_ENV_IS_NOWHERE
-# define CONFIG_ENV_SECT_SIZE		CONFIG_ENV_SIZE
-# ifndef CONFIG_ENV_OFFSET
-#  define CONFIG_ENV_OFFSET		0xE0000
-# endif
-#endif
 
 /* enable preboot to be loaded before CONFIG_BOOTDELAY */
 #define CONFIG_PREBOOT

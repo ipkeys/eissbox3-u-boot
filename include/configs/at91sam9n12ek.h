@@ -52,7 +52,6 @@
 
 /* NAND flash */
 #ifdef CONFIG_CMD_NAND
-#define CONFIG_NAND_ATMEL
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x40000000
 #define CONFIG_SYS_NAND_MASK_ALE	(1 << 21)
@@ -66,9 +65,6 @@
 #define CONFIG_ATMEL_NAND_HW_PMECC
 #define CONFIG_PMECC_CAP		2
 #define CONFIG_PMECC_SECTOR_SIZE	512
-
-#define CONFIG_MTD_PARTITIONS
-#define CONFIG_MTD_DEVICE
 
 #define CONFIG_EXTRA_ENV_SETTINGS                                       \
 	"console=console=ttyS0,115200\0"                                \

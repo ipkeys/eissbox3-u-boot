@@ -65,8 +65,6 @@
 #define CONFIG_NAND_OMAP_ECCSCHEME	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW
 #define CONFIG_SYS_NAND_MAX_OOBFREE	2
 #define CONFIG_SYS_NAND_MAX_ECCPOS	56
-#define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
-#define CONFIG_MTD_PARTITIONS		/* required for UBI partition support */
 #endif
 
 /* Environment information */
@@ -92,7 +90,7 @@
 			"fi; " \
 		"else run defaultboot; fi\0" \
 	"defaultboot=run mmcramboot\0" \
-	"consoledevice=ttyO0\0" \
+	"consoledevice=ttyS0\0" \
 	"setconsole=setenv console ${consoledevice},${baudrate}n8\0" \
 	"dump_bootargs=echo 'Bootargs: '; echo $bootargs\0" \
 	"rotation=0\0" \

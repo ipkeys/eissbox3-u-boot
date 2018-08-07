@@ -117,7 +117,6 @@
 /*
  * Flash & Environment
  */
-#define CONFIG_NAND_DAVINCI
 #define CONFIG_ENV_OFFSET		0x0 /* Block 0--not used by bootcode */
 #define CONFIG_ENV_SIZE			(128 << 10)
 #define	CONFIG_SYS_NAND_USE_FLASH_BBT
@@ -212,12 +211,6 @@
 #define CONFIG_CLOCKS
 #endif
 
-#ifndef CONFIG_DRIVER_TI_EMAC
-#endif
-
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
-
 /* defines for SPL */
 #define CONFIG_SYS_SPL_MALLOC_START	(CONFIG_SYS_TEXT_BASE - \
 						CONFIG_SYS_MALLOC_LEN)
@@ -238,7 +231,6 @@
 #define CONFIG_SYS_SPL_ARGS_ADDR	LINUX_BOOT_PARAM_ADDR
 
 /* GPIO support */
-#define CONFIG_DA8XX_GPIO
 #define CONFIG_IPAM390_GPIO_BOOTMODE	((16 * 7) + 14)
 
 #define CONFIG_SHOW_BOOT_PROGRESS

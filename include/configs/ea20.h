@@ -28,7 +28,6 @@
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
 #define CONFIG_SYS_HZ_CLOCK		clk_get(DAVINCI_AUXCLK_CLKID)
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_DA8XX_GPIO
 
 /*
  * Memory Info
@@ -111,15 +110,8 @@
 #define CONFIG_CLOCKS
 #endif
 
-#ifndef CONFIG_DRIVER_TI_EMAC
-#endif
-
 /* NAND Setup */
 #ifdef CONFIG_SYS_USE_NAND
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
-
-#define CONFIG_NAND_DAVINCI
 #define	CONFIG_SYS_NAND_PAGE_2K
 #define CONFIG_SYS_NAND_NO_SUBPAGE
 #define CONFIG_SYS_NAND_CS		2
@@ -128,10 +120,6 @@
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
 #define	CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_MAX_NAND_DEVICE	1 /* Max number of NAND devices */
-#endif
-
-/* SPI Flash */
-#ifdef CONFIG_USE_SPIFLASH
 #endif
 
 #if !defined(CONFIG_SYS_USE_NAND) && \

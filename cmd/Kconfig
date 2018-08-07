@@ -1356,6 +1356,13 @@ config CMD_MISC
 	help
 	  Delay execution for some time
 
+config MP
+	bool "support for multiprocessor"
+	help
+	  This provides an option to brinup
+	  different processors in multiprocessor
+	  cases.
+
 config CMD_TIMER
 	bool "timer"
 	help
@@ -1657,6 +1664,7 @@ config CMD_JFFS2
 
 config CMD_MTDPARTS
 	bool "MTD partition support"
+	select MTD_DEVICE if (CMD_NAND || NAND)
 	help
 	  MTD partition support
 
@@ -1771,7 +1779,7 @@ config CMD_TRACE
 
 config CMD_AVB
 	bool "avb - Android Verified Boot 2.0 operations"
-	depends on LIBAVB
+	depends on AVB_VERIFY
 	default n
 	help
 	  Enables a "avb" command to perform verification of partitions using

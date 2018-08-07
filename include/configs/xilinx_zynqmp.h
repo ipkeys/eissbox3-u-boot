@@ -46,9 +46,6 @@
 #define CONFIG_SYS_BAUDRATE_TABLE \
 	{ 4800, 9600, 19200, 38400, 57600, 115200 }
 
-/* Command line configuration */
-#define CONFIG_MP
-
 /* BOOTP options */
 #define CONFIG_BOOTP_BOOTFILESIZE
 #define CONFIG_BOOTP_MAY_FAIL
@@ -60,7 +57,6 @@
 #ifdef CONFIG_NAND_ARASAN
 # define CONFIG_SYS_MAX_NAND_DEVICE	1
 # define CONFIG_SYS_NAND_ONFI_DETECTION
-# define CONFIG_MTD_DEVICE
 #endif
 
 #if defined(CONFIG_SPL_BUILD)
@@ -101,9 +97,6 @@
 #if !defined(PARTS_DEFAULT)
 # define PARTS_DEFAULT
 #endif
-
-/* Do not preserve environment */
-#define CONFIG_ENV_SIZE			0x8000
 
 /* Monitor Command Prompt */
 /* Console I/O Buffer Size */

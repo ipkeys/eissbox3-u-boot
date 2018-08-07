@@ -107,6 +107,16 @@ F:	drivers/video/bcm2835.c
 F:	include/dm/platform_data/serial_bcm283x_mu.h
 F:	drivers/pinctrl/broadcom/
 
+ARM BROADCOM BCMSTB
+M:	Thomas Fitzsimmons <fitzsim@fitzsim.org>
+S:	Maintained
+F:	arch/arm/mach-bcmstb/
+F:	board/broadcom/bcmstb/
+F:	configs/bcm7445_defconfig
+F:	doc/README.bcm7xxx
+F:	drivers/mmc/bcmstb_sdhci.c
+F:	drivers/spi/bcmstb_spi.c
+
 ARM FREESCALE IMX
 M:	Stefano Babic <sbabic@denx.de>
 M:	Fabio Estevam <fabio.estevam@nxp.com>
@@ -144,6 +154,15 @@ S:	Maintained
 T:	git git://git.denx.de/u-boot-pxa.git
 F:	arch/arm/cpu/pxa/
 F:	arch/arm/include/asm/arch-pxa/
+
+ARM OWL
+M:	Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+S:	Maintained
+F:	arch/arm/include/asm/arch-owl/
+F:	arch/arm/mach-owl/
+F:	board/ucRobotics/
+F:	drivers/clk/owl/
+F:	drivers/serial/serial_owl.c
 
 ARM RENESAS RMOBILE/R-CAR
 M:	Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
@@ -187,6 +206,7 @@ ARM SNAPDRAGON
 M:	Ramon Fried <ramon.fried@gmail.com>
 S:	Maintained
 F:	arch/arm/mach-snapdragon/
+F:	drivers/smem/msm_smem.c
 
 ARM STI
 M:	Patrice Chotard <patrice.chotard@st.com>
@@ -400,6 +420,7 @@ F:	drivers/net/xilinx_axi_emac.c
 F:	drivers/net/xilinx_emaclite.c
 F:	drivers/serial/serial_xuartlite.c
 F:	drivers/spi/xilinx_spi.c
+F:	drivers/sysreset/sysreset_gpio.c
 F:	drivers/watchdog/xilinx_tb_wdt.c
 N:	xilinx
 
@@ -416,8 +437,8 @@ T:	git git://git.denx.de/u-boot-mmc.git
 F:	drivers/mmc/
 
 NAND FLASH
-M:	Scott Wood <oss@buserror.net>
-S:	Maintained
+#M:	Scott Wood <oss@buserror.net>
+S:	Orphaned (Since 2018-07)
 T:	git git://git.denx.de/u-boot-nand-flash.git
 F:	drivers/mtd/nand/
 

@@ -96,8 +96,6 @@
 #define CONFIG_DDR_CLK_FREQ	133000000
 #endif
 
-#define CONFIG_MP
-
 #define CONFIG_HWCONFIG
 /*
  * These can be toggled for performance analysis, otherwise use default.
@@ -514,8 +512,6 @@ combinations. this should be removed later
  * Dynamic MTD Partition support with mtdparts
  */
 #ifdef CONFIG_MTD_NOR_FLASH
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
 #define CONFIG_FLASH_CFI_MTD
 #endif
 /*

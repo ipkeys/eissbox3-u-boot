@@ -9,7 +9,6 @@
 
 #define CONFIG_REMAKE_ELF
 #define CONFIG_FSL_LAYERSCAPE
-#define CONFIG_MP
 #define CONFIG_GICV3
 #define CONFIG_FSL_TZPC_BP147
 
@@ -207,7 +206,6 @@ unsigned long long get_qixis_addr(void);
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00100000
 #define CONFIG_SPL_MAX_SIZE		0x16000
 #define CONFIG_SPL_STACK		(CONFIG_SYS_FSL_OCRAM_BASE + 0x9ff0)
-#define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
 #define CONFIG_SPL_TEXT_BASE		0x1800a000
 
 #ifdef CONFIG_NAND_BOOT
