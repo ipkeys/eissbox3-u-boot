@@ -99,24 +99,6 @@ static struct emif_regs ddr3_eissbox3_emif_reg_data = {
 	.emif_ddr_phy_ctlr_1 = MT41K256M16HA125E_EMIF_READ_LATENCY,
 };
 
-#ifdef CONFIG_SPL_OS_BOOT
-int spl_start_uboot(void)
-{
-	/* break into full u-boot on 'c' */
-	if (serial_tstc() && serial_getc() == 'c')
-		return 1;
-
-#ifdef CONFIG_SPL_ENV_SUPPORT
-	env_init();
-	env_load();
-	if (env_get_yesno("boot_os") != 1)
-		return 1;
-#endif
-
-	return 0;
-}
-#endif
-
 const struct dpll_params *get_dpll_ddr_params(void)
 {
 	int ind = get_sys_clk_index();
@@ -296,20 +278,18 @@ int board_init(void)
 	u32 sys_reboot;
 
 	sys_reboot = readl(PRM_RSTST);
-	if (sys_reboot & (1 << 9))
-		puts("Reset Source: IcePick reset has occurred.\n");
-
-	if (sys_reboot & (1 << 5))
-		puts("Reset Source: Global external warm reset has occurred.\n");
-
-	if (sys_reboot & (1 << 4))
-		puts("Reset Source: watchdog reset has occurred.\n");
-
-	if (sys_reboot & (1 << 1))
-		puts("Reset Source: Global warm SW reset has occurred.\n");
 
 	if (sys_reboot & (1 << 0))
-		puts("Reset Source: Power-on reset has occurred.\n");
+		puts("Reset: Power-on reset has occurred.\n");
+
+	if (sys_reboot & (1 << 1))
+		puts("Reset: Global internal warm reset has occurred.\n");
+
+	if (sys_reboot & (1 << 4))
+		puts("Reset: Watchdog reset has occurred.\n");
+
+	if (sys_reboot & (1 << 5))
+		puts("Reset: Global external warm reset has occurred.\n");
 
 #if defined(CONFIG_HW_WATCHDOG)
 	hw_watchdog_init();
@@ -326,9 +306,7 @@ int board_late_init(void)
 #if !defined(CONFIG_SPL_BUILD)
 	uint8_t mac_addr[6];
 	uint32_t mac_hi, mac_lo;
-#endif
 
-#if !defined(CONFIG_SPL_BUILD)
 	/* try reading mac address from efuse */
 	mac_lo = readl(&cdev->macid0l);
 	mac_hi = readl(&cdev->macid0h);
@@ -372,7 +350,6 @@ int board_late_init(void)
 static void cpsw_control(int enabled)
 {
 	/* VTP can be added here */
-
 	return;
 }
 

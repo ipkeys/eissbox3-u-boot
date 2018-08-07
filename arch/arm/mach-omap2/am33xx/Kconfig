@@ -32,7 +32,6 @@ config TARGET_AM3352_EISSBOX3
 	select BOARD_LATE_INIT
 	select DM
 	select DM_SERIAL
-	select DM_GPIO
 	imply SPL_ENV_SUPPORT
 	imply SPL_EXT_SUPPORT
 	imply SPL_FAT_SUPPORT
@@ -48,9 +47,13 @@ config TARGET_AM3352_EISSBOX3
 	imply SPL_YMODEM_SUPPORT
 	imply SPL_SYS_MALLOC_SIMPLE
 	imply SPL_SEPARATE_BSS
+	imply SPL_ETH_SUPPORT
+	imply SPL_USBETH_SUPPORT
+	imply SPL_MUSB_NEW_SUPPORT
+	imply SPL_USB_GADGET_SUPPORT
+	imply SPL_USB_ETHER
 	imply SPL_DM
 	imply SPL_DM_SEQ_ALIAS
-	imply SPL_OF_LIBFDT
 	help
 	  This option specifies support for the AM3352 EISSBox3 device.
 	  It has a disabled TI_I2C_BOARD_DETECT option.
