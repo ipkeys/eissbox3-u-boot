@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2018 IPKeys Technologies - http://www.ipkeys.com/
  * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -8,11 +9,6 @@
 /dts-v1/;
 
 #include "am33xx.dtsi"
-
-/* YK - EISSBox3 is not a bone. No Cape Manager
- * Everything is in this file
-#include "am335x-bone-common.dtsi"
-*/
 
 / {
 	model = "TI AM3352 EISSBox3";
@@ -36,7 +32,6 @@
 	chosen {
 		stdin-path = &uart0;
 		stdout-path = &uart0;
-		/* tick-timer = &timer2; */
 	};
 
 	memory {
@@ -90,17 +85,17 @@
 
 
 &am33xx_pinmux {
-	dout_pins: pinmux_dout_pins {												
-		pinctrl-single,pins = <												
+	dout_pins: pinmux_dout_pins {
+		pinctrl-single,pins = <
 			0xC0 (PIN_OUTPUT | MUX_MODE7) /* DOUT0, #78 */
 			0xC4 (PIN_OUTPUT | MUX_MODE7) /* DOUT1, #79 */
 			0xC8 (PIN_OUTPUT | MUX_MODE7) /* DOUT2, #80 */
 			0xCC (PIN_OUTPUT | MUX_MODE7) /* DOUT3, #81 */
-		>;												
-	};												
+		>;
+	};
 
-	boot_pins: pinmux_boot_pins {											
-		pinctrl-single,pins = <											
+	boot_pins: pinmux_boot_pins {
+		pinctrl-single,pins = <
 			0xA0 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT0, #70 */
 			0xA4 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT1, #71 */
 			0xA8 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT2, #72 */
@@ -113,17 +108,17 @@
 			0xD4 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT13, #9 */
 			0xD8 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT14, #10 */
 			0xDC (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE7) /* BOOT15, #11 */
-		>;											
-	};											
+		>;
+	};
 
 	led_pins: pinmux_userled_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0xE0 (PIN_OUTPUT | MUX_MODE7) /* LED0, #86 */
 			0xE4 (PIN_OUTPUT | MUX_MODE7) /* LED1, #87 */
 			0xE8 (PIN_OUTPUT | MUX_MODE7) /* LED2, #88 */
 			0xEC (PIN_OUTPUT | MUX_MODE7) /* LED3, #89 */
-		>;											
-	};											
+		>;
+	};
 
 	uart0_pins: pinmux_uart0_pins {
 		pinctrl-single,pins = <
@@ -133,14 +128,14 @@
 	};
 
 	rs485_pins: pinmux_rs485_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x180 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE0)  /* RS485 - uart1_rxd */
 			0x184 (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE0) /* RS485 - uart1_txd */
-		>;											
-	};											
+		>;
+	};
 
 	din_pins: pinmux_din_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x190 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN0, #110 */
 			0x194 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN1, #111 */
 			0x198 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN2, #112 */
@@ -149,29 +144,29 @@
 			0x34  (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN5, #45 */
 			0x38  (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN6, #46 */
 			0x3C  (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* DIN7, #47 */
-		>;											
+		>;
 	};
 
 	relay_pins: pinmux_relay_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x90 (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* Relay0, #66 */
 			0x94 (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* Relay1, #67 */
 			0x98 (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* Relay2, #68 */
 			0x9C (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* Relay3, #69 */
-		>;											
-	};											
+		>;
+	};
 
 	rtc_pins: pinmux_rtc_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x1B0 (PIN_OUTPUT | MUX_MODE7) /* RTC_INT, # - uses DS1307 driver for RTC */
-		>;											
+		>;
 	};
 
 	emu2_pins: pinmux_emu2_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x1A4 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE4) /* JTAG_EMU2, #115 */
-		>;											
-	};											
+		>;
+	};
 
 	clkout2_pin: pinmux_clkout2_pin {
 		pinctrl-single,pins = <
@@ -182,30 +177,20 @@
 	cpsw_default: cpsw_default {
 		pinctrl-single,pins = <
 			/* Slave 1 eth0 */
-
-			/* 0x108 (PIN_INPUT | MUX_MODE0)		*/	/* mii1_col */
-			/* 0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	*/  /* mii1_rxerr */
-			/* 0x10c (PIN_INPUT | MUX_MODE0)		*/	/* mii1_crs */
-			
-			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_tctl */
-			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rctl */
-			0x11C (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td3 */
-			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td2 */
-			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td1 */
-			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_td0 */
-			0x12C (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_tclk */
-			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rclk */
-			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd3 */
-			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd2 */
-			0x13C (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd1 */
-			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* rgmii1_rd0 */
+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_tctl */
+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rctl */
+			0x11C (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_td3 */
+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_td2 */
+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_td1 */
+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_td0 */
+			0x12C (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii1_tclk */
+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rclk */
+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rd3 */
+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rd2 */
+			0x13C (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rd1 */
+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii1_rd0 */
 
 			/* Slave 2 eth1 */
-
-			/* 0x70 (PULL_DISABLE | MUX_MODE1) */       /* mii2_crs */
-			/* 0x74 (PIN_INPUT_PULLUP | MUX_MODE1) */   /* mii2_rxerr */
-			/* 0x78 (PULL_DISABLE | MUX_MODE1) */       /* mii2_col */
-
 			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_tctl */
 			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)  /* rgmii2_rctl */
 			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* rgmii2_td3 */
@@ -224,11 +209,6 @@
 	cpsw_sleep: cpsw_sleep {
 		pinctrl-single,pins = <
 			/* Slave 1 eth0 reset value */
-
-			/* 0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-			/* 0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-			/* 0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-
 			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
@@ -243,11 +223,6 @@
 			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 
 			/* Slave 2 eth0 reset value*/
-
-			/* 0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-			/* 0x74 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-			/* 0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7) */
-
 			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
@@ -280,7 +255,7 @@
 	};
 
 	test_pins: pinmux_test_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x1A0 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP41, #114 */
 			0x1AC (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP36, #117 */
 			0x154 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP32, #3 */
@@ -293,8 +268,8 @@
 			0x128 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP25, #26 */
 			0x12C (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP26, #27 */
 			0x188 (PIN_INPUT_PULLDOWN | SLEWCTRL_FAST | MUX_MODE7) /* TP29, #64 */
-		>;											
-	};											
+		>;
+	};
 
 	i2c0_pins: pinmux_i2c0_pins {
 		pinctrl-single,pins = <
@@ -310,19 +285,11 @@
 		>;
 	};
 
-/*
-	i2c2_pins: pinmux_i2c2_pins {
-		pinctrl-single,pins = <
-			0x178 (PIN_INPUT_PULLUP | MUX_MODE3) /* i2c2_sda */
-/*			0x17C (PIN_INPUT_PULLUP | MUX_MODE3) /* i2c2_scl */
-/*		>;
-	};
-*/
 	emmc_rst_pins: pinmux_emmc_rst_pins {
-		pinctrl-single,pins = <											
+		pinctrl-single,pins = <
 			0x7C (PIN_OUTPUT | SLEWCTRL_FAST | MUX_MODE7) /* EMMC_RST_INT, #61 */
-		>;											
-	};											
+		>;
+	};
 
 	emmc_pins: pinmux_emmc_pins {
 		pinctrl-single,pins = <
