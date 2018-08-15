@@ -49,18 +49,18 @@
 	"bootpart=0:2\0" \
 	"optargs=\0" \
 	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenvfile}\0" \
-	"importbootenv=echo Importing environment from mmc${mmcdev} ...; " \
+	"importbootenv=echo Importing environment ...; " \
 		"env import -t ${loadaddr} ${filesize}\0" \
 	"envboot=mmc dev ${mmcdev}; " \
 		"if mmc rescan; " \
 		"then " \
-			"echo uSD card found; setenv mmcdev 0; " \
+			"echo uSD Card found; setenv mmcdev 0; " \
 		"else " \
-			"echo No uSD card, switch to eMMC; setenv mmcdev 1; " \
+			"echo No uSD Card, switch to eMMC; setenv mmcdev 1; " \
 		"fi; " \
 		"mmc dev ${mmcdev}; " \
 		"setenv bootpart ${mmcdev}:2; " \
-		"echo Loading boot enviroment from ${bootenvfile} on mmc${mmcdev} ...; " \
+		"echo Loading environment from ${bootenvfile} on mmc${mmcdev} ...; " \
 		"if run loadbootenv; " \
 		"then " \
 			"run importbootenv; " \
