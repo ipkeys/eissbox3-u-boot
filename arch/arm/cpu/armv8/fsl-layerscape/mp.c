@@ -4,10 +4,14 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
+#include <image.h>
+#include <asm/cache.h>
 #include <asm/io.h>
 #include <asm/system.h>
 #include <asm/arch/mp.h>
 #include <asm/arch/soc.h>
+#include <linux/delay.h>
 #include "cpu.h"
 #include <asm/arch-fsl-layerscape/soc.h>
 
@@ -257,7 +261,7 @@ int cpu_status(u32 nr)
 	return 0;
 }
 
-int cpu_release(u32 nr, int argc, char * const argv[])
+int cpu_release(u32 nr, int argc, char *const argv[])
 {
 	u64 boot_addr;
 	u64 *table = (u64 *)get_spin_tbl_addr();

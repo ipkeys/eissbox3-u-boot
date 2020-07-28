@@ -8,31 +8,24 @@
 #define __LS2_COMMON_H
 
 #define CONFIG_REMAKE_ELF
-#define CONFIG_FSL_LAYERSCAPE
 #define CONFIG_GICV3
-#define CONFIG_FSL_TZPC_BP147
 
 #include <asm/arch/stream_id_lsch3.h>
 #include <asm/arch/config.h>
 
 /* Link Definitions */
+#ifdef CONFIG_TFABOOT
+#define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_TEXT_BASE
+#else
 #define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_FSL_OCRAM_BASE + 0xfff0)
+#endif
 
 /* We need architecture specific misc initializations */
 
 /* Link Definitions */
-#ifndef CONFIG_QSPI_BOOT
-#else
-#define CONFIG_ENV_SIZE			0x2000          /* 8KB */
-#define CONFIG_ENV_OFFSET		0x300000        /* 3MB */
-#define CONFIG_ENV_SECT_SIZE		0x40000
-#endif
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
-#ifndef CONFIG_SPL
-#define CONFIG_FSL_DDR_INTERACTIVE	/* Interactive debugging */
-#endif
 #ifndef CONFIG_SYS_FSL_DDR4
 #define CONFIG_SYS_DDR_RAW_TIMING
 #endif
@@ -74,7 +67,9 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2048 * 1024)
 
 /* I2C */
+#ifndef CONFIG_DM_I2C
 #define CONFIG_SYS_I2C
+#endif
 
 /* Serial Port */
 #define CONFIG_SYS_NS16550_SERIAL
@@ -151,10 +146,8 @@ unsigned long long get_qixis_addr(void);
  * 512MB aligned, so the min size to hide is 512MB.
  */
 #ifdef CONFIG_FSL_MC_ENET
-#define CONFIG_SYS_LS_MC_DRAM_BLOCK_MIN_SIZE		(512UL * 1024 * 1024)
+#define CONFIG_SYS_LS_MC_DRAM_BLOCK_MIN_SIZE		(128UL * 1024 * 1024)
 #endif
-
-/* Command line configuration */
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LOAD_ADDR	(CONFIG_SYS_DDR_SDRAM_BASE + 0x10000000)
@@ -162,8 +155,6 @@ unsigned long long get_qixis_addr(void);
 /* Physical Memory Map */
 /* fixme: these need to be checked against the board */
 #define CONFIG_CHIP_SELECTS_PER_CTRL	4
-
-#define CONFIG_NR_DRAM_BANKS		3
 
 #define CONFIG_HWCONFIG
 #define HWCONFIG_BUFFER_SIZE		128
@@ -187,6 +178,7 @@ unsigned long long get_qixis_addr(void);
 	"mcinitcmd=fsl_mc start mc 0x580a00000"	\
 	" 0x580e00000 \0"
 
+#ifndef CONFIG_TFABOOT
 #ifdef CONFIG_SD_BOOT
 #define CONFIG_BOOTCOMMAND	"mmc read 0x80200000 0x6800 0x800;"\
 				" fsl_mc apply dpl 0x80200000 &&" \
@@ -197,6 +189,7 @@ unsigned long long get_qixis_addr(void);
 				" cp.b $kernel_start $kernel_load" \
 				" $kernel_size && bootm $kernel_load"
 #endif
+#endif
 
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
@@ -206,7 +199,7 @@ unsigned long long get_qixis_addr(void);
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00100000
 #define CONFIG_SPL_MAX_SIZE		0x16000
 #define CONFIG_SPL_STACK		(CONFIG_SYS_FSL_OCRAM_BASE + 0x9ff0)
-#define CONFIG_SPL_TEXT_BASE		0x1800a000
+#define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
 
 #ifdef CONFIG_NAND_BOOT
 #define CONFIG_SYS_NAND_U_BOOT_DST	0x80400000

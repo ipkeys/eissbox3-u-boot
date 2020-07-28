@@ -6,6 +6,7 @@
 #include <common.h>
 #include <ahci.h>
 #include <dm.h>
+#include <log.h>
 
 /*
  * Dummy implementation that can be overwritten by a board
@@ -44,6 +45,7 @@ static int mvebu_ahci_probe(struct udevice *dev)
 }
 
 static const struct udevice_id mvebu_ahci_ids[] = {
+	{ .compatible = "marvell,armada-380-ahci" },
 	{ .compatible = "marvell,armada-3700-ahci" },
 	{ .compatible = "marvell,armada-8k-ahci" },
 	{ }

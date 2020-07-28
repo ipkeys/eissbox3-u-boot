@@ -5,6 +5,11 @@
  * 2017 Marek Behun, CZ.NIC, marek.behun@nic.cz
  */
 
+#include <common.h>
+#include <log.h>
+#include <memalign.h>
+#include <part.h>
+#include <linux/compat.h>
 #include "btrfs.h"
 
 #define BTRFS_SUPER_FLAG_SUPP	(BTRFS_HEADER_FLAG_WRITTEN	\
@@ -179,7 +184,7 @@ int btrfs_read_superblock(void)
 		0x4000000000ull,
 		0x4000000000000ull
 	};
-	char raw_sb[BTRFS_SUPER_INFO_SIZE];
+	ALLOC_CACHE_ALIGN_BUFFER(char, raw_sb, BTRFS_SUPER_INFO_SIZE);
 	struct btrfs_super_block *sb = (struct btrfs_super_block *) raw_sb;
 	u64 dev_total_bytes;
 	int i;
@@ -197,17 +202,16 @@ int btrfs_read_superblock(void)
 			break;
 
 		if (btrfs_check_super_csum(raw_sb)) {
-			printf("%s: invalid checksum at superblock mirror %i\n",
-			       __func__, i);
+			debug("%s: invalid checksum at superblock mirror %i\n",
+			      __func__, i);
 			continue;
 		}
 
 		btrfs_super_block_to_cpu(sb);
 
 		if (sb->magic != BTRFS_MAGIC) {
-			printf("%s: invalid BTRFS magic 0x%016llX at "
-			       "superblock mirror %i\n", __func__, sb->magic,
-			       i);
+			debug("%s: invalid BTRFS magic 0x%016llX at "
+			      "superblock mirror %i\n", __func__, sb->magic, i);
 		} else if (sb->bytenr != superblock_offsets[i]) {
 			printf("%s: invalid bytenr 0x%016llX (expected "
 			       "0x%016llX) at superblock mirror %i\n",
@@ -223,12 +227,19 @@ int btrfs_read_superblock(void)
 	}
 
 	if (!btrfs_info.sb.generation) {
-		printf("%s: No valid BTRFS superblock found!\n", __func__);
+		debug("%s: No valid BTRFS superblock found!\n", __func__);
 		return -1;
 	}
 
 	if (btrfs_check_super_roots(&btrfs_info.sb)) {
 		printf("%s: No valid root_backup found!\n", __func__);
+		return -1;
+	}
+
+	if (sb->sectorsize != PAGE_SIZE) {
+		printf(
+	"%s: Unsupported sector size (%u), only supports %u as sector size\n",
+			__func__, sb->sectorsize, PAGE_SIZE);
 		return -1;
 	}
 

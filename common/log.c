@@ -233,7 +233,7 @@ int log_add_filter(const char *drv_name, enum log_category_t cat_list[],
 	ldev = log_device_find_by_name(drv_name);
 	if (!ldev)
 		return -ENOENT;
-	filt = (struct log_filter *)calloc(1, sizeof(*filt));
+	filt = calloc(1, sizeof(*filt));
 	if (!filt)
 		return -ENOMEM;
 
@@ -315,7 +315,8 @@ int log_init(void)
 		drv++;
 	}
 	gd->flags |= GD_FLG_LOG_READY;
-	gd->default_log_level = LOGL_INFO;
+	if (!gd->default_log_level)
+		gd->default_log_level = CONFIG_LOG_DEFAULT_LEVEL;
 	gd->log_fmt = LOGF_DEFAULT;
 
 	return 0;

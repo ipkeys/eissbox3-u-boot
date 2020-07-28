@@ -23,10 +23,9 @@
 /* MMC Configs */
 #define CONFIG_SYS_FSL_ESDHC_ADDR      0
 #define CONFIG_SYS_FSL_USDHC_NUM       2
-#define CONFIG_MMCROOT         "/dev/mmcblk1p2" /* Dev kit SD card */
+
 
 /* Ethernet Configs */
-#define CONFIG_MII
 #define CONFIG_FEC_XCV_TYPE            RMII
 #define CONFIG_ETHPRIME                "FEC"
 #define CONFIG_FEC_MXC_PHYADDR         0
@@ -44,14 +43,14 @@
 	"console=" CONSOLE_DEV "\0" \
 	"mmcdev=1\0" \
 	"mmcpart=1\0" \
-	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
+	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
 	"nandroot=ubi0:rootfs rootfstype=ubifs\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate}" \
-	" root=${mmcroot} ${mtdparts}\0" \
+	" root=PARTUUID=${uuid} rootwait rw ${mtdparts} ${optargs}\0" \
 	"nandargs=setenv bootargs console=${console},${baudrate}" \
-	" ubi.mtd=fs root=${nandroot} ${mtdparts}\0" \
+	" ubi.mtd=fs root=${nandroot} ${mtdparts} ${optargs}\0" \
 	"ramargs=setenv bootargs console=${console},${baudrate}" \
-	" root=/dev/ram rw ${mtdparts}\0"                    \
+	" root=/dev/ram rw ${mtdparts} ${optargs}\0"                    \
 	"loadbootscript=" \
 	"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...;" \
@@ -61,16 +60,16 @@
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdt_file}\0" \
 	"loadramdisk=fatload mmc ${mmcdev}:${mmcpart} ${ramdisk_addr_r}" \
 	" ${ramdisk_file}; setenv ramdisksize ${filesize}\0" \
-	"mmcboot=echo Booting from mmc...; run mmcargs; run loadimage;" \
-	" run loadfdt; bootz ${loadaddr} - ${fdt_addr_r}\0" \
+	"mmcboot=echo Booting from mmc...; run finduuid; run mmcargs;" \
+	"run loadimage; run loadfdt; bootz ${loadaddr} - ${fdt_addr_r}\0" \
 	"mmcramboot=run ramargs; run loadimage;" \
 	" run loadfdt; run loadramdisk;" \
 	" bootz ${loadaddr} ${ramdisk_addr_r} ${fdt_addr_r}\0" \
 	"nandboot=echo Booting from nand ...; " \
 	" run nandargs;" \
 	" nand read ${loadaddr} kernel ${kernelsize};" \
-	" nand read ${fdt_addr} dtb;" \
-	" bootz ${loadaddr} - ${fdt_addr}\0" \
+	" nand read ${fdt_addr_r} dtb;" \
+	" bootz ${loadaddr} - ${fdt_addr_r}\0" \
 	"nandramboot=echo Booting RAMdisk from nand ...; " \
 	" nand read ${ramdisk_addr_r} fs ${ramdisksize};" \
 	" nand read ${loadaddr} kernel ${kernelsize};" \
@@ -89,8 +88,8 @@
 	"fi; " \
 	"${get_cmd} ${image}; " \
 	"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-		"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
-			"bootz ${loadaddr} - ${fdt_addr}; " \
+		"if ${get_cmd} ${fdt_addr_r} ${fdt_file}; then " \
+			"bootz ${loadaddr} - ${fdt_addr_r}; " \
 		"else " \
 			"if test ${boot_fdt} = try; then " \
 				"bootz; " \
@@ -117,12 +116,7 @@
 
 #define CONFIG_ARP_TIMEOUT     200UL
 
-#define CONFIG_SYS_MEMTEST_START       0x10000000
-#define CONFIG_SYS_MEMTEST_END         0x10010000
-#define CONFIG_SYS_MEMTEST_SCRATCH     0x10800000
-
 /* Physical Memory Map */
-#define CONFIG_NR_DRAM_BANKS           1
 #define PHYS_SDRAM                     MMDC0_ARB_BASE_ADDR
 #define CONFIG_SYS_SDRAM_BASE          PHYS_SDRAM
 #define CONFIG_SYS_INIT_RAM_ADDR       IRAM_BASE_ADDR
@@ -134,9 +128,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* Environment organization */
-#define CONFIG_ENV_SIZE               (1024 * 1024)
-#define CONFIG_ENV_OFFSET             0x400000
-#define CONFIG_ENV_SECT_SIZE          CONFIG_ENV_SIZE
 
 /* NAND stuff */
 #define CONFIG_SYS_MAX_NAND_DEVICE     1
@@ -146,6 +137,7 @@
 #define CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x200000
 #define CONFIG_SYS_NAND_SPL_KERNEL_OFFS 0x00500000
+
 /* MTD device */
 
 /* DMA stuff, needed for GPMI/MXS NAND support */
@@ -164,7 +156,7 @@
 /* Falcon Mode */
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME	"args"
 #define CONFIG_SPL_FS_LOAD_KERNEL_NAME	"uImage"
-#define CONFIG_SYS_SPL_ARGS_ADDR       0x15000000
+#define CONFIG_SYS_SPL_ARGS_ADDR       0x18000000
 
 /* Falcon Mode - MMC support: args@1MB kernel@2MB */
 #define CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR  0x800   /* 1MB */

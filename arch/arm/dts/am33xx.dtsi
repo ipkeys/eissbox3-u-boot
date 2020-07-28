@@ -10,6 +10,7 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/am33xx.h>
+#include <dt-bindings/clock/am3.h>
 
 / {
 	compatible = "ti,am33xx";
@@ -28,8 +29,8 @@
 		serial3 = &uart3;
 		serial4 = &uart4;
 		serial5 = &uart5;
-		d_can0 = &dcan0;
-		d_can1 = &dcan1;
+		d-can0 = &dcan0;
+		d-can1 = &dcan1;
 		usb0 = &usb0;
 		usb1 = &usb1;
 		phy0 = &usb0_phy;
@@ -130,9 +131,11 @@
 		};
 	};
 
-	pmu {
+	pmu@4b000000 {
 		compatible = "arm,cortex-a8-pmu";
 		interrupts = <3>;
+		reg = <0x4b000000 0x1000000>;
+		ti,hwmods = "debugss";
 	};
 
 	/*
@@ -144,6 +147,8 @@
 		mpu {
 			compatible = "ti,omap3-mpu";
 			ti,hwmods = "mpu";
+			pm-sram = <&pm_sram_code
+				   &pm_sram_data>;
 		};
 	};
 
@@ -154,7 +159,7 @@
 	 * for the moment, just use a fake OCP bus entry to represent
 	 * the whole bus hierarchy.
 	 */
-	ocp: ocp {
+	ocp {
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -177,8 +182,11 @@
 			};
 
 			prcm: prcm@200000 {
-				compatible = "ti,am3-prcm";
+				compatible = "ti,am3-prcm", "simple-bus";
 				reg = <0x200000 0x4000>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+				ranges = <0 0x200000 0x4000>;
 
 				prcm_clocks: clocks {
 					#address-cells = <1>;
@@ -626,7 +634,7 @@
 			status = "disabled";
 		};
 
-		mailbox: mailbox@480C8000 {
+		mailbox: mailbox@480c8000 {
 			compatible = "ti,omap4-mailbox";
 			reg = <0x480C8000 0x200>;
 			interrupts = <77>;
@@ -647,6 +655,8 @@
 			interrupts = <67>;
 			ti,hwmods = "timer1";
 			ti,timer-alwon;
+			clocks = <&timer1_fck>;
+			clock-names = "fck";
 		};
 
 		timer2: timer@48040000 {
@@ -654,6 +664,8 @@
 			reg = <0x48040000 0x400>;
 			interrupts = <68>;
 			ti,hwmods = "timer2";
+			clocks = <&timer2_fck>;
+			clock-names = "fck";
 		};
 
 		timer3: timer@48042000 {
@@ -712,7 +724,7 @@
 			interrupts = <75
 				      76>;
 			ti,hwmods = "rtc";
-			clocks = <&clkdiv32k_ick>;
+			clocks = <&l4_per_clkctrl AM3_CLKDIV32K_CLKCTRL 0>;
 			clock-names = "int-clk";
 		};
 
@@ -771,6 +783,7 @@
 				reg-names = "phy";
 				status = "disabled";
 				ti,ctrl_mod = <&usb_ctrl_mod>;
+				#phy-cells = <0>;
 			};
 
 			usb0: usb@47401000 {
@@ -819,6 +832,7 @@
 				reg-names = "phy";
 				status = "disabled";
 				ti,ctrl_mod = <&usb_ctrl_mod>;
+				#phy-cells = <0>;
 			};
 
 			usb1: usb@47401800 {
@@ -899,16 +913,6 @@
 				status = "disabled";
 			};
 
-			eqep0: eqep@0x48300180 {
-				compatible = "ti,am33xx-eqep";
-				reg = <0x48300180 0x80>;
-				clocks = <&l4ls_gclk>;
-				clock-names = "fck";
-				interrupt-parent = <&intc>;
-				interrupts = <79>;
-				status = "disabled";
-			};
-
 			ehrpwm0: pwm@48300200 {
 				compatible = "ti,am3352-ehrpwm",
 					     "ti,am33xx-ehrpwm";
@@ -943,17 +947,6 @@
 				status = "disabled";
 			};
 
-
-			eqep1: eqep@0x48302180 {
-				compatible = "ti,am33xx-eqep";
-				reg = <0x48302180 0x80>;
-				clocks = <&l4ls_gclk>;
-				clock-names = "fck";
-				interrupt-parent = <&intc>;
-				interrupts = <88>;
-				status = "disabled";
-			};
-
 			ehrpwm1: pwm@48302200 {
 				compatible = "ti,am3352-ehrpwm",
 					     "ti,am33xx-ehrpwm";
@@ -985,16 +978,6 @@
 				clock-names = "fck";
 				interrupts = <61>;
 				interrupt-names = "ecap2";
-				status = "disabled";
-			};
-
-			eqep2: eqep@0x48304180 {
-				compatible = "ti,am33xx-eqep";
-				reg = <0x48304180 0x80>;
-				clocks = <&l4ls_gclk>;
-				clock-names = "fck";
-				interrupt-parent = <&intc>;
-				interrupts = <89>;
 				status = "disabled";
 			};
 
@@ -1067,6 +1050,21 @@
 		ocmcram: ocmcram@40300000 {
 			compatible = "mmio-sram";
 			reg = <0x40300000 0x10000>; /* 64k */
+			ranges = <0x0 0x40300000 0x10000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			pm_sram_code: pm-sram-code@0 {
+				compatible = "ti,sram";
+				reg = <0x0 0x1000>;
+				protect-exec;
+			};
+
+			pm_sram_data: pm-sram-data@1000 {
+				compatible = "ti,sram";
+				reg = <0x1000 0x1000>;
+				pool;
+			};
 		};
 
 		elm: elm@48080000 {
@@ -1101,6 +1099,16 @@
 				#io-channel-cells = <1>;
 				compatible = "ti,am3359-adc";
 			};
+		};
+
+		emif: emif@4c000000 {
+			compatible = "ti,emif-am3352";
+			reg = <0x4c000000 0x1000000>;
+			ti,hwmods = "emif";
+			interrupts = <101>;
+			sram = <&pm_sram_code
+				&pm_sram_data>;
+			ti,no-idle;
 		};
 
 		gpmc: gpmc@50000000 {
@@ -1155,7 +1163,7 @@
 			dma-names = "tx", "rx";
 		};
 
-		mcasp1: mcasp@4803C000 {
+		mcasp1: mcasp@4803c000 {
 			compatible = "ti,am33xx-mcasp-audio";
 			ti,hwmods = "mcasp1";
 			reg = <0x4803C000 0x2000>,
@@ -1185,4 +1193,4 @@
 	};
 };
 
-/include/ "am33xx-clocks.dtsi"
+#include "am33xx-clocks.dtsi"

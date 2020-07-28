@@ -15,8 +15,9 @@ import collections
 import copy
 import sys
 
-import fdt
-import fdt_util
+from dtoc import fdt
+from dtoc import fdt_util
+from patman import tools
 
 # When we see these properties we ignore them - i.e. do not create a structure member
 PROP_IGNORE_LIST = [
@@ -99,7 +100,7 @@ def get_value(ftype, value):
     if ftype == fdt.TYPE_INT:
         return '%#x' % fdt_util.fdt32_to_cpu(value)
     elif ftype == fdt.TYPE_BYTE:
-        return '%#x' % ord(value[0])
+        return '%#x' % tools.ToByte(value[0])
     elif ftype == fdt.TYPE_STRING:
         return '"%s"' % value
     elif ftype == fdt.TYPE_BOOL:
@@ -422,7 +423,7 @@ class DtbPlatdata(object):
 
         This writes out the body of a header file consisting of structure
         definitions for node in self._valid_nodes. See the documentation in
-        README.of-plat for more information.
+        doc/driver-model/of-plat.rst for more information.
         """
         self.out_header()
         self.out('#include <stdbool.h>\n')
@@ -449,9 +450,10 @@ class DtbPlatdata(object):
                 self.out(';\n')
             self.out('};\n')
 
-        for alias, struct_name in self._aliases.iteritems():
-            self.out('#define %s%s %s%s\n'% (STRUCT_PREFIX, alias,
-                                             STRUCT_PREFIX, struct_name))
+        for alias, struct_name in self._aliases.items():
+            if alias not in sorted(structs):
+                self.out('#define %s%s %s%s\n'% (STRUCT_PREFIX, alias,
+                                                 STRUCT_PREFIX, struct_name))
 
     def output_node(self, node):
         """Output the C code for a node
@@ -461,9 +463,10 @@ class DtbPlatdata(object):
         """
         struct_name, _ = get_compat_name(node)
         var_name = conv_name_to_c(node.name)
-        self.buf('static struct %s%s %s%s = {\n' %
+        self.buf('static const struct %s%s %s%s = {\n' %
                  (STRUCT_PREFIX, struct_name, VAL_PREFIX, var_name))
-        for pname, prop in node.props.items():
+        for pname in sorted(node.props):
+            prop = node.props[pname]
             if pname in PROP_IGNORE_LIST or pname[0] == '#':
                 continue
             member_name = conv_name_to_c(prop.name)
@@ -497,7 +500,7 @@ class DtbPlatdata(object):
                         vals.append(get_value(prop.type, val))
 
                     # Put 8 values per line to avoid very long lines.
-                    for i in xrange(0, len(vals), 8):
+                    for i in range(0, len(vals), 8):
                         if i:
                             self.buf(',\n\t\t')
                         self.buf(', '.join(vals[i:i + 8]))
@@ -524,7 +527,7 @@ class DtbPlatdata(object):
         U_BOOT_DEVICE() declarations for each valid node. Where a node has
         multiple compatible strings, a #define is used to make them equivalent.
 
-        See the documentation in doc/driver-model/of-plat.txt for more
+        See the documentation in doc/driver-model/of-plat.rst for more
         information.
         """
         self.out_header()

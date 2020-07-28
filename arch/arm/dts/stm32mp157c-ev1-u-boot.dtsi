@@ -7,25 +7,19 @@
 
 / {
 	aliases {
-		spi0 = &qspi;
+		gpio26 = &stmfx_pinctrl;
 		i2c1 = &i2c2;
 		i2c4 = &i2c5;
+		pinctrl2 = &stmfx_pinctrl;
+		spi0 = &qspi;
+		usb0 = &usbotg_hs;
 	};
 };
 
 &flash0 {
-	compatible = "spi-flash";
+	u-boot,dm-spl;
 };
 
-&flash1 {
-	compatible = "spi-flash";
-};
-
-&v3v3 {
-	regulator-always-on;
-};
-
-/* SPL part **************************************/
 &qspi {
 	u-boot,dm-spl;
 };
@@ -57,6 +51,3 @@
 	};
 };
 
-&flash0 {
-	u-boot,dm-spl;
-};

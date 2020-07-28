@@ -8,6 +8,7 @@
 #include <common.h>
 #include <errno.h>
 #include <fdtdec.h>
+#include <init.h>
 #include <asm/arch/reset_manager.h>
 #include <asm/arch/clock_manager.h>
 #include <asm/arch/misc.h>
@@ -42,14 +43,6 @@ int board_init(void)
 {
 	/* Address of boot parameters for ATAG (if ATAG is used) */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-
-#if defined(CONFIG_TARGET_SOCFPGA_ARRIA10)
-	/* configuring the clock based on handoff */
-	cm_basic_init(gd->fdt_blob);
-
-	/* Add device descriptor to FPGA device table */
-	socfpga_fpga_add();
-#endif
 
 	return 0;
 }

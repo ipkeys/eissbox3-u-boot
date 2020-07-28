@@ -9,9 +9,12 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
 #include <debug_uart.h>
 #include <dm.h>
 #include <errno.h>
+#include <init.h>
+#include <malloc.h>
 #include <linux/err.h>
 #include <linux/types.h>
 #include <efi.h>
@@ -161,5 +164,4 @@ U_BOOT_DRIVER(efi_sysreset) = {
 	.id = UCLASS_SYSRESET,
 	.of_match = efi_sysreset_ids,
 	.ops = &efi_sysreset_ops,
-	.flags = DM_FLAG_PRE_RELOC,
 };

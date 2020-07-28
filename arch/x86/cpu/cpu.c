@@ -19,14 +19,18 @@
  */
 
 #include <common.h>
+#include <bootstage.h>
 #include <command.h>
+#include <cpu_func.h>
 #include <dm.h>
 #include <errno.h>
+#include <init.h>
+#include <log.h>
 #include <malloc.h>
 #include <syscon.h>
+#include <acpi/acpi_s3.h>
+#include <acpi/acpi_table.h>
 #include <asm/acpi.h>
-#include <asm/acpi_s3.h>
-#include <asm/acpi_table.h>
 #include <asm/control_regs.h>
 #include <asm/coreboot_tables.h>
 #include <asm/cpu.h>
@@ -45,6 +49,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifndef CONFIG_TPL_BUILD
 static const char *const x86_vendor_name[] = {
 	[X86_VENDOR_INTEL]     = "Intel",
 	[X86_VENDOR_CYRIX]     = "Cyrix",
@@ -57,6 +62,7 @@ static const char *const x86_vendor_name[] = {
 	[X86_VENDOR_NSC]       = "NSC",
 	[X86_VENDOR_SIS]       = "SiS",
 };
+#endif
 
 int __weak x86_cleanup_before_linux(void)
 {
@@ -113,6 +119,7 @@ int icache_status(void)
 	return 1;
 }
 
+#ifndef CONFIG_TPL_BUILD
 const char *cpu_vendor_name(int vendor)
 {
 	const char *name;
@@ -123,6 +130,7 @@ const char *cpu_vendor_name(int vendor)
 
 	return name;
 }
+#endif
 
 char *cpu_get_name(char *name)
 {
@@ -233,8 +241,10 @@ int cpu_init_r(void)
 	struct udevice *dev;
 	int ret;
 
-	if (!ll_boot_init())
+	if (!ll_boot_init()) {
+		uclass_first_device(UCLASS_PCI, &dev);
 		return 0;
+	}
 
 	ret = x86_init_cpus();
 	if (ret)
@@ -282,3 +292,28 @@ int reserve_arch(void)
 	return 0;
 }
 #endif
+
+long detect_coreboot_table_at(ulong start, ulong size)
+{
+	u32 *ptr, *end;
+
+	size /= 4;
+	for (ptr = (void *)start, end = ptr + size; ptr < end; ptr += 4) {
+		if (*ptr == 0x4f49424c) /* "LBIO" */
+			return (long)ptr;
+	}
+
+	return -ENOENT;
+}
+
+long locate_coreboot_table(void)
+{
+	long addr;
+
+	/* We look for LBIO in the first 4K of RAM and again at 960KB */
+	addr = detect_coreboot_table_at(0x0, 0x1000);
+	if (addr < 0)
+		addr = detect_coreboot_table_at(0xf0000, 0x1000);
+
+	return addr;
+}

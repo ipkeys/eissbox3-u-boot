@@ -9,12 +9,17 @@
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
+#include <malloc.h>
 #include <asm/io.h>
 #include <asm/gpio.h>
+#include <dt-bindings/gpio/gpio.h>
+
+#include "da8xx_gpio.h"
+
+#if !CONFIG_IS_ENABLED(DM_GPIO)
 #include <asm/arch/hardware.h>
 #include <asm/arch/davinci_misc.h>
 
-#ifndef CONFIG_DM_GPIO
 static struct gpio_registry {
 	int is_registered;
 	char name[GPIO_NAME_SIZE];
@@ -338,13 +343,6 @@ int gpio_free(unsigned int gpio)
 }
 #endif
 
-static int _gpio_direction_output(struct davinci_gpio *bank, unsigned int gpio, int value)
-{
-	clrbits_le32(&bank->dir, 1U << GPIO_BIT(gpio));
-	gpio_set_value(gpio, value);
-	return 0;
-}
-
 static int _gpio_direction_input(struct davinci_gpio *bank, unsigned int gpio)
 {
 	setbits_le32(&bank->dir, 1U << GPIO_BIT(gpio));
@@ -373,7 +371,15 @@ static int _gpio_get_dir(struct davinci_gpio *bank, unsigned int gpio)
 	return in_le32(&bank->dir) & (1U << GPIO_BIT(gpio));
 }
 
-#ifndef CONFIG_DM_GPIO
+static int _gpio_direction_output(struct davinci_gpio *bank, unsigned int gpio,
+				  int value)
+{
+	clrbits_le32(&bank->dir, 1U << GPIO_BIT(gpio));
+	_gpio_set_value(bank, gpio, value);
+	return 0;
+}
+
+#if !CONFIG_IS_ENABLED(DM_GPIO)
 
 void gpio_info(void)
 {
@@ -424,25 +430,32 @@ int gpio_set_value(unsigned int gpio, int value)
 	return _gpio_set_value(bank, gpio, value);
 }
 
-#else /* CONFIG_DM_GPIO */
+#else /* DM_GPIO */
 
 static struct davinci_gpio *davinci_get_gpio_bank(struct udevice *dev, unsigned int offset)
 {
 	struct davinci_gpio_bank *bank = dev_get_priv(dev);
+	unsigned long addr;
 
-	/* The device tree is not broken into banks but the infrastructure is
+	/*
+	 * The device tree is not broken into banks but the infrastructure is
 	 * expecting it this way, so we'll first include the 0x10 offset, then
 	 * calculate the bank manually based on the offset.
+	 * Casting 'addr' as Unsigned long is needed to make the math work.
 	 */
-
-	return ((struct davinci_gpio *)bank->base) + 0x10 + (offset >> 5);
+	addr = ((unsigned long)(struct davinci_gpio *)bank->base) +
+			0x10 + (0x28 * (offset >> 5));
+	return (struct davinci_gpio *)addr;
 }
 
 static int davinci_gpio_direction_input(struct udevice *dev, unsigned int offset)
 {
 	struct davinci_gpio *base = davinci_get_gpio_bank(dev, offset);
 
-	_gpio_direction_input(base, offset);
+	/*
+	 * Fetch the address based on GPIO, but only pass the masked low 32-bits
+	 */
+	_gpio_direction_input(base, (offset & 0x1f));
 	return 0;
 }
 
@@ -451,7 +464,7 @@ static int davinci_gpio_direction_output(struct udevice *dev, unsigned int offse
 {
 	struct davinci_gpio *base = davinci_get_gpio_bank(dev, offset);
 
-	_gpio_direction_output(base, offset, value);
+	_gpio_direction_output(base, (offset & 0x1f), value);
 	return 0;
 }
 
@@ -459,7 +472,7 @@ static int davinci_gpio_get_value(struct udevice *dev, unsigned int offset)
 {
 	struct davinci_gpio *base = davinci_get_gpio_bank(dev, offset);
 
-	return _gpio_get_value(base, offset);
+	return _gpio_get_value(base, (offset & 0x1f));
 }
 
 static int davinci_gpio_set_value(struct udevice *dev, unsigned int offset,
@@ -467,7 +480,7 @@ static int davinci_gpio_set_value(struct udevice *dev, unsigned int offset,
 {
 	struct davinci_gpio *base = davinci_get_gpio_bank(dev, offset);
 
-	_gpio_set_value(base, offset, value);
+	_gpio_set_value(base, (offset & 0x1f), value);
 
 	return 0;
 }
@@ -485,12 +498,25 @@ static int davinci_gpio_get_function(struct udevice *dev, unsigned int offset)
 	return GPIOF_OUTPUT;
 }
 
+static int davinci_gpio_xlate(struct udevice *dev, struct gpio_desc *desc,
+			      struct ofnode_phandle_args *args)
+{
+	desc->offset = args->args[0];
+
+	if (args->args[1] & GPIO_ACTIVE_LOW)
+		desc->flags = GPIOD_ACTIVE_LOW;
+	else
+		desc->flags = 0;
+	return 0;
+}
+
 static const struct dm_gpio_ops gpio_davinci_ops = {
 	.direction_input	= davinci_gpio_direction_input,
 	.direction_output	= davinci_gpio_direction_output,
 	.get_value		= davinci_gpio_get_value,
 	.set_value		= davinci_gpio_set_value,
 	.get_function		= davinci_gpio_get_function,
+	.xlate			= davinci_gpio_xlate,
 };
 
 static int davinci_gpio_probe(struct udevice *dev)
@@ -509,6 +535,8 @@ static int davinci_gpio_probe(struct udevice *dev)
 
 static const struct udevice_id davinci_gpio_ids[] = {
 	{ .compatible = "ti,dm6441-gpio" },
+	{ .compatible = "ti,k2g-gpio" },
+	{ .compatible = "ti,keystone-gpio" },
 	{ }
 };
 

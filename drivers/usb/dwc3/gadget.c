@@ -14,10 +14,14 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
+#include <log.h>
 #include <malloc.h>
-#include <asm/dma-mapping.h>
-#include <usb/lin_gadget_compat.h>
+#include <dm/device_compat.h>
+#include <dm/devres.h>
 #include <linux/bug.h>
+#include <linux/delay.h>
+#include <linux/dma-mapping.h>
 #include <linux/list.h>
 
 #include <linux/usb/ch9.h>
@@ -243,7 +247,8 @@ void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
 
 	list_del(&req->list);
 	req->trb = NULL;
-	dwc3_flush_cache((uintptr_t)req->request.dma, req->request.length);
+	if (req->request.length)
+		dwc3_flush_cache((uintptr_t)req->request.dma, req->request.length);
 
 	if (req->request.status == -EINPROGRESS)
 		req->request.status = status;

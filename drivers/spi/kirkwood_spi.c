@@ -9,11 +9,12 @@
 
 #include <common.h>
 #include <dm.h>
+#include <log.h>
 #include <malloc.h>
 #include <spi.h>
 #include <asm/io.h>
 #include <asm/arch/soc.h>
-#ifdef CONFIG_KIRKWOOD
+#ifdef CONFIG_ARCH_KIRKWOOD
 #include <asm/arch/mpp.h>
 #endif
 #include <asm/arch-mvebu/spi.h>
@@ -98,7 +99,7 @@ static int _spi_xfer(struct kwspi_registers *reg, unsigned int bitlen,
 static struct kwspi_registers *spireg =
 	(struct kwspi_registers *)MVEBU_SPI_BASE;
 
-#ifdef CONFIG_KIRKWOOD
+#ifdef CONFIG_ARCH_KIRKWOOD
 static u32 cs_spi_mpp_back[2];
 #endif
 
@@ -107,7 +108,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 {
 	struct spi_slave *slave;
 	u32 data;
-#ifdef CONFIG_KIRKWOOD
+#ifdef CONFIG_ARCH_KIRKWOOD
 	static const u32 kwspi_mpp_config[2][2] = {
 		{ MPP0_SPI_SCn, 0 }, /* if cs == 0 */
 		{ MPP7_SPI_SCn, 0 } /* if cs != 0 */
@@ -135,7 +136,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	writel(KWSPI_SMEMRDIRQ, &spireg->irq_cause);
 	writel(KWSPI_IRQMASK, &spireg->irq_mask);
 
-#ifdef CONFIG_KIRKWOOD
+#ifdef CONFIG_ARCH_KIRKWOOD
 	/* program mpp registers to select  SPI_CSn */
 	kirkwood_mpp_conf(kwspi_mpp_config[cs ? 1 : 0], cs_spi_mpp_back);
 #endif
@@ -145,15 +146,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 void spi_free_slave(struct spi_slave *slave)
 {
-#ifdef CONFIG_KIRKWOOD
+#ifdef CONFIG_ARCH_KIRKWOOD
 	kirkwood_mpp_conf(cs_spi_mpp_back, NULL);
 #endif
 	free(slave);
 }
-
-#if defined(CONFIG_SYS_KW_SPI_MPP)
-u32 spi_mpp_backup[4];
-#endif
 
 __attribute__((weak)) int board_spi_claim_bus(struct spi_slave *slave)
 {
@@ -162,34 +159,6 @@ __attribute__((weak)) int board_spi_claim_bus(struct spi_slave *slave)
 
 int spi_claim_bus(struct spi_slave *slave)
 {
-#if defined(CONFIG_SYS_KW_SPI_MPP)
-	u32 config;
-	u32 spi_mpp_config[4];
-
-	config = CONFIG_SYS_KW_SPI_MPP;
-
-	if (config & MOSI_MPP6)
-		spi_mpp_config[0] = MPP6_SPI_MOSI;
-	else
-		spi_mpp_config[0] = MPP1_SPI_MOSI;
-
-	if (config & SCK_MPP10)
-		spi_mpp_config[1] = MPP10_SPI_SCK;
-	else
-		spi_mpp_config[1] = MPP2_SPI_SCK;
-
-	if (config & MISO_MPP11)
-		spi_mpp_config[2] = MPP11_SPI_MISO;
-	else
-		spi_mpp_config[2] = MPP3_SPI_MISO;
-
-	spi_mpp_config[3] = 0;
-	spi_mpp_backup[3] = 0;
-
-	/* set new spi mpp and save current mpp config */
-	kirkwood_mpp_conf(spi_mpp_config, spi_mpp_backup);
-#endif
-
 	return board_spi_claim_bus(slave);
 }
 
@@ -199,10 +168,6 @@ __attribute__((weak)) void board_spi_release_bus(struct spi_slave *slave)
 
 void spi_release_bus(struct spi_slave *slave)
 {
-#if defined(CONFIG_SYS_KW_SPI_MPP)
-	kirkwood_mpp_conf(spi_mpp_backup, NULL);
-#endif
-
 	board_spi_release_bus(slave);
 }
 
@@ -217,10 +182,6 @@ int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 	return bus == 0 && (cs == 0 || cs == 1);
 }
 #endif
-
-void spi_init(void)
-{
-}
 
 void spi_cs_activate(struct spi_slave *slave)
 {
@@ -248,6 +209,7 @@ struct mvebu_spi_dev {
 
 struct mvebu_spi_platdata {
 	struct kwspi_registers *spireg;
+	bool is_errata_50mhz_ac;
 };
 
 struct mvebu_spi_priv {
@@ -309,7 +271,6 @@ static int mvebu_spi_set_mode(struct udevice *bus, uint mode)
 {
 	struct mvebu_spi_platdata *plat = dev_get_platdata(bus);
 	struct kwspi_registers *reg = plat->spireg;
-	const struct mvebu_spi_dev *drvdata;
 	u32 data = readl(&reg->cfg);
 
 	data &= ~(KWSPI_CPHA | KWSPI_CPOL | KWSPI_RXLSBF | KWSPI_TXLSBF);
@@ -323,8 +284,7 @@ static int mvebu_spi_set_mode(struct udevice *bus, uint mode)
 
 	writel(data, &reg->cfg);
 
-	drvdata = (struct mvebu_spi_dev *)dev_get_driver_data(bus);
-	if (drvdata->is_errata_50mhz_ac)
+	if (plat->is_errata_50mhz_ac)
 		mvebu_spi_50mhz_ac_timing_erratum(bus, mode);
 
 	return 0;
@@ -339,6 +299,11 @@ static int mvebu_spi_xfer(struct udevice *dev, unsigned int bitlen,
 	return _spi_xfer(plat->spireg, bitlen, dout, din, flags);
 }
 
+__attribute__((weak)) int mvebu_board_spi_claim_bus(struct udevice *dev)
+{
+	return 0;
+}
+
 static int mvebu_spi_claim_bus(struct udevice *dev)
 {
 	struct udevice *bus = dev->parent;
@@ -349,7 +314,17 @@ static int mvebu_spi_claim_bus(struct udevice *dev)
 			KWSPI_CS_MASK << KWSPI_CS_SHIFT,
 			spi_chip_select(dev) << KWSPI_CS_SHIFT);
 
+	return mvebu_board_spi_claim_bus(dev);
+}
+
+__attribute__((weak)) int mvebu_board_spi_release_bus(struct udevice *dev)
+{
 	return 0;
+}
+
+static int mvebu_spi_release_bus(struct udevice *dev)
+{
+	return mvebu_board_spi_release_bus(dev);
 }
 
 static int mvebu_spi_probe(struct udevice *bus)
@@ -367,14 +342,18 @@ static int mvebu_spi_probe(struct udevice *bus)
 static int mvebu_spi_ofdata_to_platdata(struct udevice *bus)
 {
 	struct mvebu_spi_platdata *plat = dev_get_platdata(bus);
+	const struct mvebu_spi_dev *drvdata =
+		(struct mvebu_spi_dev *)dev_get_driver_data(bus);
 
 	plat->spireg = (struct kwspi_registers *)devfdt_get_addr(bus);
+	plat->is_errata_50mhz_ac = drvdata->is_errata_50mhz_ac;
 
 	return 0;
 }
 
 static const struct dm_spi_ops mvebu_spi_ops = {
 	.claim_bus	= mvebu_spi_claim_bus,
+	.release_bus	= mvebu_spi_release_bus,
 	.xfer		= mvebu_spi_xfer,
 	.set_speed	= mvebu_spi_set_speed,
 	.set_mode	= mvebu_spi_set_mode,
@@ -382,6 +361,10 @@ static const struct dm_spi_ops mvebu_spi_ops = {
 	 * cs_info is not needed, since we require all chip selects to be
 	 * in the device tree explicitly
 	 */
+};
+
+static const struct mvebu_spi_dev armada_spi_dev_data = {
+	.is_errata_50mhz_ac = false,
 };
 
 static const struct mvebu_spi_dev armada_xp_spi_dev_data = {
@@ -397,6 +380,10 @@ static const struct mvebu_spi_dev armada_380_spi_dev_data = {
 };
 
 static const struct udevice_id mvebu_spi_ids[] = {
+	{
+		.compatible = "marvell,orion-spi",
+		.data = (ulong)&armada_spi_dev_data,
+	},
 	{
 		.compatible = "marvell,armada-375-spi",
 		.data = (ulong)&armada_375_spi_dev_data

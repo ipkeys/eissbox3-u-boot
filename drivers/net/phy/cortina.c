@@ -9,8 +9,10 @@
 
 #include <config.h>
 #include <common.h>
+#include <log.h>
 #include <malloc.h>
 #include <linux/ctype.h>
+#include <linux/delay.h>
 #include <linux/string.h>
 #include <linux/err.h>
 #include <phy.h>
@@ -176,8 +178,13 @@ void cs4340_upload_firmware(struct phy_device *phydev)
 		printf("MMC read: dev # %u, block # %u, count %u ...\n",
 		       dev, blk, cnt);
 		mmc_init(mmc);
+#ifdef CONFIG_BLK
+		(void)blk_dread(mmc_get_blk_desc(mmc), blk, cnt,
+						addr);
+#else
 		(void)mmc->block_dev.block_read(&mmc->block_dev, blk, cnt,
 						addr);
+#endif
 	}
 #endif
 

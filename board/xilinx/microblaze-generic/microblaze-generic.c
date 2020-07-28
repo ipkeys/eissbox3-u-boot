@@ -12,96 +12,32 @@
 
 #include <common.h>
 #include <config.h>
-#include <dm.h>
+#include <env.h>
+#include <init.h>
+#include <log.h>
 #include <dm/lists.h>
 #include <fdtdec.h>
-#include <asm/processor.h>
-#include <asm/microblaze_intc.h>
-#include <asm/asm.h>
-#include <asm/gpio.h>
-#include <dm/uclass.h>
-#include <wdt.h>
+#include <linux/sizes.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_WDT)
-static struct udevice *watchdog_dev;
-#endif /* !CONFIG_SPL_BUILD && CONFIG_WDT */
-
-ulong ram_base;
-
 int dram_init_banksize(void)
 {
-	gd->bd->bi_dram[0].start = ram_base;
-	gd->bd->bi_dram[0].size = get_effective_memsize();
-
-	return 0;
+	return fdtdec_setup_memory_banksize();
 }
 
 int dram_init(void)
 {
-	int node;
-	fdt_addr_t addr;
-	fdt_size_t size;
-	const void *blob = gd->fdt_blob;
-
-	node = fdt_node_offset_by_prop_value(blob, -1, "device_type",
-					     "memory", 7);
-	if (node == -FDT_ERR_NOTFOUND) {
-		debug("DRAM: Can't get memory node\n");
-		return 1;
-	}
-	addr = fdtdec_get_addr_size(blob, node, "reg", &size);
-	if (addr == FDT_ADDR_T_NONE || size == 0) {
-		debug("DRAM: Can't get base address or size\n");
-		return 1;
-	}
-	ram_base = addr;
-
-	gd->ram_top = addr; /* In setup_dest_addr() is done +ram_size */
-	gd->ram_size = size;
+	if (fdtdec_setup_mem_size_base() != 0)
+		return -EINVAL;
 
 	return 0;
 };
 
-#ifdef CONFIG_WDT
-/* Called by macro WATCHDOG_RESET */
-void watchdog_reset(void)
-{
-#if !defined(CONFIG_SPL_BUILD)
-	ulong now;
-	static ulong next_reset;
-
-	if (!watchdog_dev)
-		return;
-
-	now = timer_get_us();
-
-	/* Do not reset the watchdog too often */
-	if (now > next_reset) {
-		wdt_reset(watchdog_dev);
-		next_reset = now + 1000;
-	}
-#endif /* !CONFIG_SPL_BUILD */
-}
-#endif /* CONFIG_WDT */
-
 int board_late_init(void)
 {
-#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_WDT)
-	watchdog_dev = NULL;
+	ulong max_size, lowmem_size;
 
-	if (uclass_get_device_by_seq(UCLASS_WDT, 0, &watchdog_dev)) {
-		debug("Watchdog: Not found by seq!\n");
-		if (uclass_get_device(UCLASS_WDT, 0, &watchdog_dev)) {
-			puts("Watchdog: Not found!\n");
-			return 0;
-		}
-	}
-
-	wdt_start(watchdog_dev, 0, 0);
-	puts("Watchdog: Started\n");
-#endif /* !CONFIG_SPL_BUILD && CONFIG_WDT */
 #if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_SYSRESET_MICROBLAZE)
 	int ret;
 
@@ -110,5 +46,21 @@ int board_late_init(void)
 	if (ret)
 		printf("Warning: No reset driver: ret=%d\n", ret);
 #endif
+
+	if (!(gd->flags & GD_FLG_ENV_DEFAULT)) {
+		debug("Saved variables - Skipping\n");
+		return 0;
+	}
+
+	max_size = gd->start_addr_sp - CONFIG_STACK_SIZE;
+	max_size = round_down(max_size, SZ_16M);
+
+	/* Linux default LOWMEM_SIZE is 0x30000000 = 768MB */
+	lowmem_size = gd->ram_base + 768 * 1024 * 1024;
+
+	env_set_addr("initrd_high", (void *)min_t(ulong, max_size,
+						  lowmem_size));
+	env_set_addr("fdt_high", (void *)min_t(ulong, max_size, lowmem_size));
+
 	return 0;
 }

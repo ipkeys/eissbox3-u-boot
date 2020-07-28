@@ -4,7 +4,9 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
 #include <fdtdec.h>
+#include <init.h>
 #include <netdev.h>
 
 int arch_cpu_init(void)

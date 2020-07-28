@@ -11,7 +11,9 @@
 #include <cpu.h>
 #include <dm.h>
 #include <errno.h>
+#include <init.h>
 #include <asm/io.h>
+#include <linux/bitops.h>
 
 #define REV_CHIPID_SHIFT		16
 #define REV_CHIPID_MASK			(0xffff << REV_CHIPID_SHIFT)
@@ -65,6 +67,10 @@
 #define REG_BCM63268_MISC_STRAPBUS	0x1814
 #define STRAPBUS_63268_FCVO_SHIFT	21
 #define STRAPBUS_63268_FCVO_MASK	(0xf << STRAPBUS_63268_FCVO_SHIFT)
+
+#define REG_BCM6838_OTP_BRCMBITS0	0x440
+#define VIPER_6838_FREQ_SHIFT		18
+#define VIPER_6838_FREQ_MASK		(0x7 << VIPER_6838_FREQ_SHIFT)
 
 struct bmips_cpu_priv;
 
@@ -272,6 +278,26 @@ static ulong bcm63268_get_cpu_freq(struct bmips_cpu_priv *priv)
 	}
 }
 
+static ulong bcm6838_get_cpu_freq(struct bmips_cpu_priv *priv)
+{
+	unsigned int mips_viper_freq;
+
+	mips_viper_freq = readl_be(priv->regs + REG_BCM6838_OTP_BRCMBITS0);
+	mips_viper_freq = (mips_viper_freq & VIPER_6838_FREQ_MASK)
+		>> VIPER_6838_FREQ_SHIFT;
+
+	switch (mips_viper_freq) {
+	case 0x0:
+		return 600000000;
+	case 0x1:
+		return 400000000;
+	case 0x2:
+		return 240000000;
+	default:
+		return 0;
+	}
+}
+
 static int bcm6328_get_cpu_count(struct bmips_cpu_priv *priv)
 {
 	u32 val = readl_be(priv->regs + REG_BCM6328_OTP);
@@ -343,6 +369,12 @@ static const struct bmips_cpu_hw bmips_cpu_bcm6368 = {
 static const struct bmips_cpu_hw bmips_cpu_bcm63268 = {
 	.get_cpu_desc = bmips_long_cpu_desc,
 	.get_cpu_freq = bcm63268_get_cpu_freq,
+	.get_cpu_count = bcm6358_get_cpu_count,
+};
+
+static const struct bmips_cpu_hw bmips_cpu_bcm6838 = {
+	.get_cpu_desc = bmips_short_cpu_desc,
+	.get_cpu_freq = bcm6838_get_cpu_freq,
 	.get_cpu_count = bcm6358_get_cpu_count,
 };
 
@@ -444,6 +476,9 @@ static const struct udevice_id bmips_cpu_ids[] = {
 	}, {
 		.compatible = "brcm,bcm63268-cpu",
 		.data = (ulong)&bmips_cpu_bcm63268,
+	}, {
+		.compatible = "brcm,bcm6838-cpu",
+		.data = (ulong)&bmips_cpu_bcm6838,
 	},
 	{ /* sentinel */ }
 };

@@ -4,10 +4,13 @@
  */
 
 #include <common.h>
+#include <command.h>
+#include <log.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/sys_proto.h>
 #include <malloc.h>
+#include <linux/bitops.h>
 #include <u-boot/md5.h>
 #include <u-boot/rsa.h>
 #include <u-boot/rsa-mod-exp.h>
@@ -408,15 +411,19 @@ static int zynq_verify_image(u32 src_ptr)
 	return 0;
 }
 
-static int do_zynq_rsa(cmd_tbl_t *cmdtp, int flag, int argc,
-		       char * const argv[])
+static int do_zynq_rsa(struct cmd_tbl *cmdtp, int flag, int argc,
+		       char *const argv[])
 {
 	u32 src_ptr;
 	char *endp;
 
+	if (argc != cmdtp->maxargs)
+		return CMD_RET_FAILURE;
+
 	src_ptr = simple_strtoul(argv[2], &endp, 16);
 	if (*argv[2] == 0 || *endp != 0)
 		return CMD_RET_USAGE;
+
 	if (zynq_verify_image(src_ptr))
 		return CMD_RET_FAILURE;
 
@@ -425,12 +432,15 @@ static int do_zynq_rsa(cmd_tbl_t *cmdtp, int flag, int argc,
 #endif
 
 #ifdef CONFIG_CMD_ZYNQ_AES
-static int zynq_decrypt_image(cmd_tbl_t *cmdtp, int flag, int argc,
-			      char * const argv[])
+static int zynq_decrypt_image(struct cmd_tbl *cmdtp, int flag, int argc,
+			      char *const argv[])
 {
 	char *endp;
 	u32 srcaddr, srclen, dstaddr, dstlen;
 	int status;
+
+	if (argc < 5 && argc > cmdtp->maxargs)
+		return CMD_RET_USAGE;
 
 	srcaddr = simple_strtoul(argv[2], &endp, 16);
 	if (*argv[2] == 0 || *endp != 0)
@@ -462,7 +472,7 @@ static int zynq_decrypt_image(cmd_tbl_t *cmdtp, int flag, int argc,
 }
 #endif
 
-static cmd_tbl_t zynq_commands[] = {
+static struct cmd_tbl zynq_commands[] = {
 #ifdef CONFIG_CMD_ZYNQ_RSA
 	U_BOOT_CMD_MKENT(rsa, 3, 1, do_zynq_rsa, "", ""),
 #endif
@@ -471,9 +481,10 @@ static cmd_tbl_t zynq_commands[] = {
 #endif
 };
 
-static int do_zynq(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_zynq(struct cmd_tbl *cmdtp, int flag, int argc,
+		   char *const argv[])
 {
-	cmd_tbl_t *zynq_cmd;
+	struct cmd_tbl *zynq_cmd;
 	int ret;
 
 	if (!ARRAY_SIZE(zynq_commands)) {
@@ -485,7 +496,7 @@ static int do_zynq(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return CMD_RET_USAGE;
 	zynq_cmd = find_cmd_tbl(argv[1], zynq_commands,
 				ARRAY_SIZE(zynq_commands));
-	if (!zynq_cmd || argc != zynq_cmd->maxargs)
+	if (!zynq_cmd)
 		return CMD_RET_USAGE;
 
 	ret = zynq_cmd->cmd(zynq_cmd, flag, argc, argv);
@@ -493,6 +504,7 @@ static int do_zynq(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return cmd_process_error(zynq_cmd, ret);
 }
 
+#ifdef CONFIG_SYS_LONGHELP
 static char zynq_help_text[] =
 	""
 #ifdef CONFIG_CMD_ZYNQ_RSA
@@ -507,6 +519,7 @@ static char zynq_help_text[] =
 	"                  destination address\n"
 #endif
 	;
+#endif
 
 U_BOOT_CMD(zynq,	6,	0,	do_zynq,
 	   "Zynq specific commands", zynq_help_text

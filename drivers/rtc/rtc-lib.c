@@ -23,7 +23,7 @@ static const unsigned char rtc_days_in_month[] = {
 /*
  * The number of days in the month.
  */
-static int rtc_month_days(unsigned int month, unsigned int year)
+int rtc_month_days(unsigned int month, unsigned int year)
 {
 	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
 }
@@ -31,10 +31,14 @@ static int rtc_month_days(unsigned int month, unsigned int year)
 /*
  * rtc_to_tm - Converts u64 to rtc_time.
  * Convert seconds since 01-01-1970 00:00:00 to Gregorian date.
+ *
+ * This function is copied from rtc_time64_to_tm() in the Linux kernel.
+ * But in U-Boot January is month 1 and we do not subtract 1900 from the year.
  */
 void rtc_to_tm(u64 time, struct rtc_time *tm)
 {
-	unsigned int month, year, secs, days;
+	unsigned int month, year, secs;
+	int days;
 
 	days = div_u64_rem(time, 86400, &secs);
 

@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <hang.h>
 #include <wait_bit.h>
 #include <asm/io.h>
 #include <asm/arch/mailbox_s10.h>
@@ -55,11 +56,11 @@ static __always_inline int mbox_fill_cmd_circular_buff(u32 header, u32 len,
 	cout = MBOX_READL(MBOX_COUT) % MBOX_CMD_BUFFER_SIZE;
 
 	/* if command buffer is full or not enough free space
-	 * to fit the data
+	 * to fit the data. Note, len is in u32 unit.
 	 */
 	if (((cin + 1) % MBOX_CMD_BUFFER_SIZE) == cout ||
 	    ((MBOX_CMD_BUFFER_SIZE - cin + cout - 1) %
-	     MBOX_CMD_BUFFER_SIZE) < len)
+	     MBOX_CMD_BUFFER_SIZE) < (len + 1))
 		return -ENOMEM;
 
 	/* write header to circular buffer */
@@ -160,15 +161,15 @@ static __always_inline int mbox_send_cmd_common(u8 id, u32 cmd, u8 is_indirect,
 	u32 buf_len;
 	int ret;
 
-	ret = mbox_prepare_cmd_only(id, cmd, is_indirect, len, arg);
-	if (ret)
-		return ret;
-
 	if (urgent) {
 		/* Read status because it is toggled */
 		status = MBOX_READL(MBOX_STATUS) & MBOX_STATUS_UA_MSK;
-		/* Send command as urgent command */
-		MBOX_WRITEL(1, MBOX_URG);
+		/* Write urgent command to urgent register */
+		MBOX_WRITEL(cmd, MBOX_URG);
+	} else {
+		ret = mbox_prepare_cmd_only(id, cmd, is_indirect, len, arg);
+		if (ret)
+			return ret;
 	}
 
 	/* write doorbell */
@@ -188,8 +189,7 @@ static __always_inline int mbox_send_cmd_common(u8 id, u32 cmd, u8 is_indirect,
 
 		if (urgent) {
 			u32 new_status = MBOX_READL(MBOX_STATUS);
-			/* urgent command doesn't have response */
-			MBOX_WRITEL(0, MBOX_URG);
+
 			/* Urgent ACK is toggled */
 			if ((new_status & MBOX_STATUS_UA_MSK) ^ status)
 				return 0;
@@ -288,9 +288,6 @@ int mbox_qspi_close(void)
 
 int mbox_qspi_open(void)
 {
-	static const struct socfpga_system_manager *sysmgr_regs =
-		(struct socfpga_system_manager *)SOCFPGA_SYSMGR_ADDRESS;
-
 	int ret;
 	u32 resp_buf[1];
 	u32 resp_buf_len;
@@ -319,7 +316,8 @@ int mbox_qspi_open(void)
 
 	/* We are getting QSPI ref clock and set into sysmgr boot register */
 	printf("QSPI: Reference clock at %d Hz\n", resp_buf[0]);
-	writel(resp_buf[0], &sysmgr_regs->boot_scratch_cold0);
+	writel(resp_buf[0],
+	       socfpga_get_sysmgr_addr() + SYSMGR_SOC64_BOOT_SCRATCH_COLD0);
 
 	return 0;
 
@@ -341,6 +339,54 @@ int mbox_reset_cold(void)
 		hang();
 	}
 	return 0;
+}
+
+/* Accepted commands: CONFIG_STATUS or RECONFIG_STATUS */
+static __always_inline int mbox_get_fpga_config_status_common(u32 cmd)
+{
+	u32 reconfig_status_resp_len;
+	u32 reconfig_status_resp[RECONFIG_STATUS_RESPONSE_LEN];
+	int ret;
+
+	reconfig_status_resp_len = RECONFIG_STATUS_RESPONSE_LEN;
+	ret = mbox_send_cmd_common(MBOX_ID_UBOOT, cmd,
+				   MBOX_CMD_DIRECT, 0, NULL, 0,
+				   &reconfig_status_resp_len,
+				   reconfig_status_resp);
+
+	if (ret)
+		return ret;
+
+	/* Check for any error */
+	ret = reconfig_status_resp[RECONFIG_STATUS_STATE];
+	if (ret && ret != MBOX_CFGSTAT_STATE_CONFIG)
+		return ret;
+
+	/* Make sure nStatus is not 0 */
+	ret = reconfig_status_resp[RECONFIG_STATUS_PIN_STATUS];
+	if (!(ret & RCF_PIN_STATUS_NSTATUS))
+		return MBOX_CFGSTAT_STATE_ERROR_HARDWARE;
+
+	ret = reconfig_status_resp[RECONFIG_STATUS_SOFTFUNC_STATUS];
+	if (ret & RCF_SOFTFUNC_STATUS_SEU_ERROR)
+		return MBOX_CFGSTAT_STATE_ERROR_HARDWARE;
+
+	if ((ret & RCF_SOFTFUNC_STATUS_CONF_DONE) &&
+	    (ret & RCF_SOFTFUNC_STATUS_INIT_DONE) &&
+	    !reconfig_status_resp[RECONFIG_STATUS_STATE])
+		return 0;	/* configuration success */
+
+	return MBOX_CFGSTAT_STATE_CONFIG;
+}
+
+int mbox_get_fpga_config_status(u32 cmd)
+{
+	return mbox_get_fpga_config_status_common(cmd);
+}
+
+int __secure mbox_get_fpga_config_status_psci(u32 cmd)
+{
+	return mbox_get_fpga_config_status_common(cmd);
 }
 
 int mbox_send_cmd(u8 id, u32 cmd, u8 is_indirect, u32 len, u32 *arg,

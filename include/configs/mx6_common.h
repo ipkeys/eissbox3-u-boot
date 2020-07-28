@@ -6,6 +6,8 @@
 #ifndef __MX6_COMMON_H
 #define __MX6_COMMON_H
 
+#include <linux/stringify.h>
+
 #if (defined(CONFIG_MX6UL) || defined(CONFIG_MX6ULL))
 #define CONFIG_SC_TIMER_CLK 8000000 /* 8Mhz */
 #define COUNTER_FREQUENCY CONFIG_SC_TIMER_CLK
@@ -55,18 +57,9 @@
 #define CONFIG_SYS_MAXARGS	32
 
 /* MMC */
-#define CONFIG_BOUNCE_BUFFER
-#define CONFIG_FSL_USDHC
 
-/* Fuses */
-#define CONFIG_MXC_OCOTP
-
-/* Secure boot (HAB) support */
-#ifdef CONFIG_SECURE_BOOT
-#define CONFIG_CSF_SIZE			0x2000
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SPL_DRIVERS_MISC_SUPPORT
-#endif
 #endif
 
 #endif

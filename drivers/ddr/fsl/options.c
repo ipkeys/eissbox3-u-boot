@@ -5,8 +5,10 @@
  */
 
 #include <common.h>
+#include <env.h>
 #include <hwconfig.h>
 #include <fsl_ddr_sdram.h>
+#include <log.h>
 
 #include <fsl_ddr.h>
 #if defined(CONFIG_FSL_LSCH2) || defined(CONFIG_FSL_LSCH3) || \
@@ -22,9 +24,12 @@
  */
 
 /* Board-specific functions defined in each board's ddr.c */
-extern void fsl_ddr_board_options(memctl_options_t *popts,
-		dimm_params_t *pdimm,
-		unsigned int ctrl_num);
+void __weak fsl_ddr_board_options(memctl_options_t *popts,
+				  dimm_params_t *pdimm,
+				  unsigned int ctrl_num)
+{
+	return;
+}
 
 struct dynamic_odt {
 	unsigned int odt_rd_cfg;

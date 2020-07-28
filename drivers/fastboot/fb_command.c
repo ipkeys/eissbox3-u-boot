@@ -4,10 +4,13 @@
  */
 
 #include <common.h>
+#include <command.h>
+#include <env.h>
 #include <fastboot.h>
 #include <fastboot-internal.h>
 #include <fb_mmc.h>
 #include <fb_nand.h>
+#include <flash.h>
 #include <part.h>
 #include <stdlib.h>
 

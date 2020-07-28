@@ -8,6 +8,7 @@
 #include <asm/eth-raw-os.h>
 #include <dm.h>
 #include <errno.h>
+#include <malloc.h>
 #include <dm/device-internal.h>
 #include <dm/lists.h>
 
@@ -42,7 +43,7 @@ static int eth_raw_bus_post_bind(struct udevice *dev)
 		device_probe(child);
 		priv = dev_get_priv(child);
 		if (priv) {
-			memcpy(priv->host_ifname, i->if_name, IFNAMSIZ);
+			strcpy(priv->host_ifname, i->if_name);
 			priv->host_ifindex = i->if_index;
 			priv->local = local;
 		}

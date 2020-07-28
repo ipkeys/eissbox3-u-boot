@@ -55,6 +55,7 @@
 #include "pbl_crc32.h"
 #include "imagetool.h"
 #include "mkimage.h"
+#include <u-boot/crc.h>
 
 #include <image.h>
 
@@ -191,6 +192,7 @@ static int sfp_verify_header(const uint8_t *buf, uint8_t *ver)
 	if (hdr_csum != sfp_csum)
 		return -EINVAL;
 
+	*ver = header_v0.version;
 	return img_len;
 }
 
@@ -201,7 +203,7 @@ static int sfp_sign_buffer(uint8_t *buf, uint8_t ver, uint8_t flags,
 	uint32_t calc_crc;
 
 	/* Align the length up */
-	len = (len + 3) & ~3;
+	len = ALIGN(len, 4);
 
 	/* Build header, adding 4 bytes to length to hold the CRC32. */
 	sfp_build_header(buf + HEADER_OFFSET, ver, flags, len + 4);

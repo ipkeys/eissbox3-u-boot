@@ -4,7 +4,10 @@
  * Copyright (C) 2012 Xilinx, Inc. All rights reserved.
  */
 #include <common.h>
+#include <cpu_func.h>
+#include <init.h>
 #include <zynqpl.h>
+#include <asm/cache.h>
 #include <asm/io.h>
 #include <asm/arch/clk.h>
 #include <asm/arch/hardware.h>
@@ -83,7 +86,7 @@ void reset_cpu(ulong addr)
 		;
 }
 
-#ifndef CONFIG_SYS_DCACHE_OFF
+#if !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
 void enable_caches(void)
 {
 	/* Enable D-cache. I-cache is already enabled in start.S */

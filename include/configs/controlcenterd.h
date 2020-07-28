@@ -26,6 +26,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <linux/stringify.h>
+
 #ifdef CONFIG_SDCARD
 #define CONFIG_RAMBOOT_SDCARD
 #endif
@@ -121,9 +123,6 @@
 #define CONFIG_DIMM_SLOTS_PER_CTLR	1
 #define CONFIG_CHIP_SELECTS_PER_CTRL	(2 * CONFIG_DIMM_SLOTS_PER_CTLR)
 
-#define CONFIG_SYS_MEMTEST_START	0x00000000
-#define CONFIG_SYS_MEMTEST_END		0x3fffffff
-
 #ifdef CONFIG_TRAILBLAZER
 #define CONFIG_SPD_EEPROM
 #define SPD_EEPROM_ADDRESS 0x52
@@ -181,16 +180,6 @@
 #define CONFIG_SYS_I2C_EEPROM_ADDR 0x52
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 2
 
-#ifndef CONFIG_TRAILBLAZER
-/*
- * eSPI - Enhanced SPI
- */
-#define CONFIG_HARD_SPI
-
-#define CONFIG_SF_DEFAULT_SPEED		10000000
-#define CONFIG_SF_DEFAULT_MODE		0
-#endif
-
 /*
  * MMC
  */
@@ -214,7 +203,6 @@
 #define CONFIG_SYS_PCI_64BIT		/* enable 64-bit PCI resources */
 
 #define CONFIG_FSL_PCI_INIT		/* Use common FSL init code */
-#define CONFIG_FSL_PCIE_RESET		/* need PCIe reset errata */
 
 #define CONFIG_SYS_PCIE1_MEM_VIRT	0xc0000000
 #ifdef CONFIG_PHYS_64BIT
@@ -253,7 +241,6 @@
 
 #define CONFIG_TSECV2
 
-#define CONFIG_MII			/* MII PHY management */
 #define CONFIG_TSEC1		1
 #define CONFIG_TSEC1_NAME	"eTSEC1"
 #define CONFIG_TSEC2		1
@@ -284,26 +271,10 @@
  * Environment
  */
 #if defined(CONFIG_TRAILBLAZER)
-#define CONFIG_ENV_SIZE		0x2000		/* 8KB */
-#elif defined(CONFIG_RAMBOOT_SPIFLASH)
-#define CONFIG_ENV_SPI_BUS	0
-#define CONFIG_ENV_SPI_CS	0
-#define CONFIG_ENV_SPI_MAX_HZ	10000000
-#define CONFIG_ENV_SPI_MODE	0
-#define CONFIG_ENV_SIZE		0x2000		/* 8KB */
-#define CONFIG_ENV_OFFSET	0x100000	/* 1MB */
-#define CONFIG_ENV_SECT_SIZE	0x10000
 #elif defined(CONFIG_RAMBOOT_SDCARD)
 #define CONFIG_FSL_FIXED_MMC_LOCATION
-#define CONFIG_ENV_SIZE		0x2000
 #define CONFIG_SYS_MMC_ENV_DEV	0
 #endif
-
-#define CONFIG_SYS_EXTRA_ENV_RELOC
-
-/*
- * Command line configuration.
- */
 
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
 
@@ -311,7 +282,6 @@
 /*
  * Board initialisation callbacks
  */
-#define CONFIG_MISC_INIT_R
 #endif /* CONFIG_TRAILBLAZER */
 
 /*

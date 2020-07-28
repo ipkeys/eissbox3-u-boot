@@ -4,6 +4,10 @@
  * ISEE 2007 SL, <www.iseebcn.com>
  */
 #include <common.h>
+#include <env.h>
+#include <init.h>
+#include <malloc.h>
+#include <net.h>
 #include <status_led.h>
 #include <dm.h>
 #include <ns16550.h>
@@ -16,6 +20,7 @@
 #include <asm/arch/mmc_host_def.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
+#include <linux/delay.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/rawnand.h>
 #include <linux/mtd/onenand.h>

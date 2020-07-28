@@ -21,6 +21,7 @@
 #include <spi.h>
 #include <malloc.h>
 #include <asm/io.h>
+#include <linux/bitops.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -415,7 +416,7 @@ static void _omap3_spi_set_wordlen(struct omap3_spi_priv *priv)
 	unsigned int confr;
 
 	/* McSPI individual channel configuration */
-	confr = readl(&priv->regs->channel[priv->wordlen].chconf);
+	confr = readl(&priv->regs->channel[priv->cs].chconf);
 
 	/* wordlength */
 	confr &= ~OMAP3_MCSPI_CHCONF_WL_MASK;
@@ -459,11 +460,6 @@ static void _omap3_spi_claim_bus(struct omap3_spi_priv *priv)
 static inline struct omap3_spi_priv *to_omap3_spi(struct spi_slave *slave)
 {
 	return container_of(slave, struct omap3_spi_priv, slave);
-}
-
-void spi_init(void)
-{
-	/* do nothing */
 }
 
 void spi_free_slave(struct spi_slave *slave)

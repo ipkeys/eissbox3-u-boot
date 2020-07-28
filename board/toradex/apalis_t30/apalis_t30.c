@@ -5,6 +5,8 @@
  */
 
 #include <common.h>
+#include <init.h>
+#include <log.h>
 #include <asm/arch/gp_padctrl.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/ap.h>
@@ -14,6 +16,7 @@
 #include <dm.h>
 #include <i2c.h>
 #include <pci_tegra.h>
+#include <linux/delay.h>
 #include "../common/tdx-common.h"
 
 #include "pinmux-config-apalis_t30.h"
@@ -164,3 +167,12 @@ void tegra_pcie_board_port_reset(struct tegra_pcie_port *port)
 #endif /* CONFIG_APALIS_T30_PCIE_EVALBOARD_INIT */
 }
 #endif /* CONFIG_PCI_TEGRA */
+
+/*
+ * Backlight off before OS handover
+ */
+void board_preboot_os(void)
+{
+	gpio_request(TEGRA_GPIO(V, 2), "BKL1_ON");
+	gpio_direction_output(TEGRA_GPIO(V, 2), 0);
+}

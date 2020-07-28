@@ -6,8 +6,9 @@
  * Author: Rick Chen (rick@andestech.com)
  */
 
-#include <clk.h>
 #include <common.h>
+#include <clk.h>
+#include <log.h>
 #include <malloc.h>
 #include <spi.h>
 #include <asm/io.h>

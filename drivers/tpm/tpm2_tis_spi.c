@@ -19,6 +19,8 @@
 #include <log.h>
 #include <spi.h>
 #include <tpm-v2.h>
+#include <linux/bitops.h>
+#include <linux/delay.h>
 #include <linux/errno.h>
 #include <linux/compiler.h>
 #include <linux/types.h>
@@ -295,6 +297,14 @@ static int tpm_tis_spi_wait_for_stat(struct udevice *dev, u8 mask,
 	return -ETIMEDOUT;
 }
 
+static u8 tpm_tis_spi_valid_status(struct udevice *dev, u8 *status)
+{
+	struct tpm_chip *chip = dev_get_priv(dev);
+
+	return tpm_tis_spi_wait_for_stat(dev, TPM_STS_VALID,
+		chip->timeout_c, status);
+}
+
 static int tpm_tis_spi_get_burstcount(struct udevice *dev)
 {
 	struct tpm_chip *chip = dev_get_priv(dev);
@@ -455,7 +465,7 @@ static int tpm_tis_spi_send(struct udevice *dev, const u8 *buf, size_t len)
 		i += size;
 	}
 
-	ret = tpm_tis_spi_status(dev, &status);
+	ret = tpm_tis_spi_valid_status(dev, &status);
 	if (ret)
 		goto out_err;
 
@@ -469,7 +479,7 @@ static int tpm_tis_spi_send(struct udevice *dev, const u8 *buf, size_t len)
 	if (ret)
 		goto out_err;
 
-	ret = tpm_tis_spi_status(dev, &status);
+	ret = tpm_tis_spi_valid_status(dev, &status);
 	if (ret)
 		goto out_err;
 
@@ -510,6 +520,7 @@ static int tpm_tis_spi_cleanup(struct udevice *dev)
 static int tpm_tis_spi_open(struct udevice *dev)
 {
 	struct tpm_chip *chip = dev_get_priv(dev);
+	struct tpm_chip_priv *priv = dev_get_uclass_priv(dev);
 
 	if (chip->is_open)
 		return -EBUSY;
@@ -575,7 +586,10 @@ static int tpm_tis_spi_probe(struct udevice *dev)
 	struct tpm_chip *chip = dev_get_priv(dev);
 	int ret;
 
-	if (IS_ENABLED(CONFIG_DM_GPIO)) {
+	/* Use the TPM v2 stack */
+	priv->version = TPM_V2;
+
+	if (CONFIG_IS_ENABLED(DM_GPIO)) {
 		struct gpio_desc reset_gpio;
 
 		ret = gpio_request_by_name(dev, "gpio-reset", 0,
@@ -584,9 +598,9 @@ static int tpm_tis_spi_probe(struct udevice *dev)
 			log(LOGC_NONE, LOGL_NOTICE, "%s: missing reset GPIO\n",
 			    __func__);
 		} else {
-			dm_gpio_set_value(&reset_gpio, 0);
-			mdelay(1);
 			dm_gpio_set_value(&reset_gpio, 1);
+			mdelay(1);
+			dm_gpio_set_value(&reset_gpio, 0);
 		}
 	}
 
