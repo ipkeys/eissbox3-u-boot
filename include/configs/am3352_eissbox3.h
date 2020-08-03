@@ -26,9 +26,6 @@
 /* Custom script for NOR */
 #define CONFIG_SYS_LDSCRIPT		"board/ti/am3352_eissbox3/u-boot.lds"
 
-/* Always 128 KiB env size */
-#define CONFIG_ENV_SIZE			SZ_128K
-
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 0) \
 	func(MMC, mmc, 1)
@@ -117,7 +114,7 @@
  * add mass storage support and for gadget we add both RNDIS ethernet
  * and DFU.
  */
-#define CONFIG_USB_MUSB_DISABLE_BULK_COMBINE_SPLIT
+#define CONFIG_USB_MUSB_DISABLE_BULK_COMBINE_SPLIT 1
 #define CONFIG_AM335X_USB0
 #define CONFIG_AM335X_USB0_MODE	MUSB_PERIPHERAL
 #define CONFIG_AM335X_USB1
