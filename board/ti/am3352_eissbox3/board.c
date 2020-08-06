@@ -9,6 +9,7 @@
 
 #include <common.h>
 #include <dm.h>
+#include <env.h>
 #include <errno.h>
 #include <spl.h>
 #include <serial.h>
@@ -32,7 +33,7 @@
 #include <miiphy.h>
 #include <cpsw.h>
 #include <power/tps65217.h>
-#include <environment.h>
+#include <env_internal.h>
 #include <watchdog.h>
 #include "board.h"
 
