@@ -118,13 +118,11 @@
 
 #if defined(CONFIG_TARGET_COLIBRI_IMX7_NAND)
 #define CONFIG_BOOTCOMMAND "run ubiboot ; echo ; echo ubiboot failed ; " \
-	"setenv fdtfile ${soc}-colibri-${fdt_board}.dtb && run distro_bootcmd;"
+	"run distro_bootcmd;"
 #define MODULE_EXTRA_ENV_SETTINGS \
 	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	UBI_BOOTCMD
 #elif defined(CONFIG_TARGET_COLIBRI_IMX7_EMMC)
-#define CONFIG_BOOTCOMMAND \
-	"setenv fdtfile ${soc}-colibri-emmc-${fdt_board}.dtb && run distro_bootcmd;"
 #define MODULE_EXTRA_ENV_SETTINGS \
 	"variant=-emmc\0" \
 	EMMC_ANDROID_BOOTCMD
@@ -173,6 +171,7 @@
 		"fatload ${interface} 0:1 ${loadaddr} " \
 		"${board}/flash_blk.img && source ${loadaddr}\0" \
 	"splashpos=m,m\0" \
+	"splashimage=" __stringify(CONFIG_LOADADDR) "\0" \
 	"videomode=video=ctfb:x:640,y:480,depth:18,pclk:39722,le:48,ri:16,up:33,lo:10,hs:96,vs:2,sync:0,vmode:0\0" \
 	"updlevel=2\0"
 
@@ -193,14 +192,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
-/* environment organization */
-
-#if defined(CONFIG_ENV_IS_IN_MMC)
-/* Environment in eMMC, before config block at the end of 1st "boot sector" */
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#define CONFIG_SYS_MMC_ENV_PART		1
-#endif
-
 #ifdef CONFIG_TARGET_COLIBRI_IMX7_NAND
 /* NAND stuff */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -217,17 +208,11 @@
 #define CONFIG_MXC_USB_FLAGS		0
 #define CONFIG_USB_MAX_CONTROLLER_COUNT 2
 
-#define CONFIG_IMX_THERMAL
-
 #define CONFIG_USBD_HS
 
 #if defined(CONFIG_VIDEO) || defined(CONFIG_DM_VIDEO)
 #define CONFIG_VIDEO_MXS
 #define CONFIG_VIDEO_LOGO
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_SPLASH_SCREEN_ALIGN
-#define CONFIG_BMP_16BPP
-#define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_VIDEO_BMP_LOGO
 #endif
 

@@ -32,6 +32,10 @@
 
 	reboot {
 		u-boot,dm-pre-reloc;
+		compatible = "syscon-reboot";
+		regmap = <&rcc>;
+		offset = <0x404>;
+		mask = <0x1>;
 	};
 
 	soc {
@@ -65,7 +69,7 @@
 };
 
 &bsec {
-	u-boot,dm-pre-proper;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_csi {
@@ -86,6 +90,16 @@
 
 &clk_lse {
 	u-boot,dm-pre-reloc;
+};
+
+&cpu0_opp_table {
+	u-boot,dm-spl;
+	opp-650000000 {
+		u-boot,dm-spl;
+	};
+	opp-800000000 {
+		u-boot,dm-spl;
+	};
 };
 
 &gpioa {
@@ -145,6 +159,13 @@
 	u-boot,dm-pre-proper;
 };
 
+/* temp = waiting kernel update */
+&m4_rproc {
+	resets = <&rcc MCU_R>,
+		 <&rcc MCU_HOLD_BOOT_R>;
+	reset-names = "mcu_rst", "hold_boot";
+};
+
 &pinctrl {
 	u-boot,dm-pre-reloc;
 };
@@ -173,6 +194,38 @@
 
 &sdmmc3 {
 	compatible = "st,stm32-sdmmc2", "arm,pl18x", "arm,primecell";
+};
+
+&usart1 {
+	resets = <&rcc USART1_R>;
+};
+
+&usart2 {
+	resets = <&rcc USART2_R>;
+};
+
+&usart3 {
+	resets = <&rcc USART3_R>;
+};
+
+&uart4 {
+	resets = <&rcc UART4_R>;
+};
+
+&uart5 {
+	resets = <&rcc UART5_R>;
+};
+
+&usart6 {
+	resets = <&rcc USART6_R>;
+};
+
+&uart7 {
+	resets = <&rcc UART7_R>;
+};
+
+&uart8{
+	resets = <&rcc UART8_R>;
 };
 
 &usbotg_hs {

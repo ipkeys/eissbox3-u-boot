@@ -19,7 +19,6 @@
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(3 * SZ_1M)
 
-#define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
 
 #ifdef CONFIG_IMX_BOOTAUX
@@ -171,24 +170,15 @@
 #define CONFIG_PCIE_IMX_POWER_GPIO	IMX_GPIO_NR(2, 1)
 #endif
 
-#define CONFIG_IMX_THERMAL
-
 #ifndef CONFIG_SPL_BUILD
 #ifdef CONFIG_VIDEO
 #define CONFIG_VIDEO_MXS
 #define CONFIG_VIDEO_LOGO
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_SPLASH_SCREEN_ALIGN
-#define CONFIG_BMP_16BPP
-#define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_VIDEO_BMP_LOGO
 #define MXS_LCDIF_BASE MX6SX_LCDIF1_BASE_ADDR
 #endif
 #endif
 
 #define CONFIG_SYS_FSL_USDHC_NUM	3
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		2  /*USDHC4*/
-#endif
 
 #endif				/* __CONFIG_H */

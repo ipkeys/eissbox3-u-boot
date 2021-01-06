@@ -55,7 +55,6 @@ int board_init(void)
 {
 	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
 	gd->bd->bi_arch_number = MACH_TYPE_VEXPRESS;
-	gd->flags = 0;
 
 	icache_enable();
 	flash__init();
@@ -64,7 +63,7 @@ int board_init(void)
 	return 0;
 }
 
-int board_eth_init(bd_t *bis)
+int board_eth_init(struct bd_info *bis)
 {
 	int rc = 0;
 #ifdef CONFIG_SMC911X
@@ -73,7 +72,7 @@ int board_eth_init(bd_t *bis)
 	return rc;
 }
 
-int cpu_mmc_init(bd_t *bis)
+int cpu_mmc_init(struct bd_info *bis)
 {
 	int rc = 0;
 	(void) bis;

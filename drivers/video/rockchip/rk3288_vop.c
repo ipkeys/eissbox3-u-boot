@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2017 Theobroma Systems Design und Consulting GmbH
  * Copyright (c) 2015 Google, Inc
@@ -97,8 +97,8 @@ static const struct udevice_id rk3288_vop_ids[] = {
 static const struct video_ops rk3288_vop_ops = {
 };
 
-U_BOOT_DRIVER(rk_vop) = {
-	.name	= "rk3288_vop",
+U_BOOT_DRIVER(rockchip_rk3288_vop) = {
+	.name	= "rockchip_rk3288_vop",
 	.id	= UCLASS_VIDEO,
 	.of_match = rk3288_vop_ids,
 	.ops	= &rk3288_vop_ops,

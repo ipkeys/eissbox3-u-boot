@@ -38,9 +38,6 @@
  */
 #define CONFIG_SYS_MMC_MAX_DEVICE 4
 
-/* allow to overwrite serial and ethaddr */
-#define CONFIG_ENV_OVERWRITE
-
 /*
  * Increasing the size of the IO buffer as default nfsargs size is more
  *  than 256 and so it is not possible to edit it
@@ -51,6 +48,12 @@
 
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		(CONFIG_SYS_CBSIZE)
+
+#ifdef CONFIG_ARM64
+#define FDTFILE "nvidia/" CONFIG_DEFAULT_DEVICE_TREE ".dtb"
+#else
+#define FDTFILE CONFIG_DEFAULT_DEVICE_TREE ".dtb"
+#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

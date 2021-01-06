@@ -7,11 +7,11 @@ try:
 except:
     import ConfigParser
 
+import argparse
 import os
 import re
 
 from patman import command
-from patman import gitutil
 from patman import tools
 
 """Default settings per-project.
@@ -185,7 +185,7 @@ def ReadGitAliases(fname):
 
     fd.close()
 
-def CreatePatmanConfigFile(config_fname):
+def CreatePatmanConfigFile(gitutil, config_fname):
     """Creates a config file under $(HOME)/.patman if it can't find one.
 
     Args:
@@ -217,10 +217,10 @@ nxp = Zhikang Zhang <zhikang.zhang@nxp.com>
 ''' % (name, email), file=f)
     f.close();
 
-def _UpdateDefaults(parser, config):
+def _UpdateDefaults(main_parser, config):
     """Update the given OptionParser defaults based on config.
 
-    We'll walk through all of the settings from the parser
+    We'll walk through all of the settings from all parsers.
     For each setting we'll look for a default in the option parser.
     If it's found we'll update the option parser default.
 
@@ -229,22 +229,39 @@ def _UpdateDefaults(parser, config):
     say.
 
     Args:
-        parser: An instance of an OptionParser whose defaults will be
+        parser: An instance of an ArgumentParser whose defaults will be
             updated.
         config: An instance of _ProjectConfigParser that we will query
             for settings.
     """
-    defaults = parser.get_default_values()
+    # Find all the parsers and subparsers
+    parsers = [main_parser]
+    parsers += [subparser for action in main_parser._actions
+                  if isinstance(action, argparse._SubParsersAction)
+                  for _, subparser in action.choices.items()]
+
+    # Collect the defaults from each parser
+    defaults = {}
+    for parser in parsers:
+        pdefs = parser.parse_known_args()[0]
+        defaults.update(vars(pdefs))
+
+    # Go through the settings and collect defaults
     for name, val in config.items('settings'):
-        if hasattr(defaults, name):
-            default_val = getattr(defaults, name)
+        if name in defaults:
+            default_val = defaults[name]
             if isinstance(default_val, bool):
                 val = config.getboolean('settings', name)
             elif isinstance(default_val, int):
                 val = config.getint('settings', name)
-            parser.set_default(name, val)
+            elif isinstance(default_val, str):
+                val = config.get('settings', name)
+            defaults[name] = val
         else:
             print("WARNING: Unknown setting %s" % name)
+
+    # Set all the defaults (this propagates through all subparsers)
+    main_parser.set_defaults(**defaults)
 
 def _ReadAliasFile(fname):
     """Read in the U-Boot git alias file if it exists.
@@ -301,7 +318,7 @@ def GetItems(config, section):
     except:
         raise
 
-def Setup(parser, project_name, config_fname=''):
+def Setup(gitutil, parser, project_name, config_fname=''):
     """Set up the settings module by reading config files.
 
     Args:
@@ -318,7 +335,7 @@ def Setup(parser, project_name, config_fname=''):
 
     if not os.path.exists(config_fname):
         print("No config file found ~/.patman\nCreating one...\n")
-        CreatePatmanConfigFile(config_fname)
+        CreatePatmanConfigFile(gitutil, config_fname)
 
     config.read(config_fname)
 

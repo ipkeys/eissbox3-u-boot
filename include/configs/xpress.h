@@ -16,7 +16,6 @@
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(16 << 20)
 
-#define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		MX6UL_UART7_BASE_ADDR
 
 /* MMC Configs */
@@ -49,8 +48,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* Environment is in stored in the eMMC boot partition */
-#define CONFIG_SYS_MMC_ENV_DEV		0	/* USDHC2 */
-#define CONFIG_SYS_MMC_ENV_PART		1	/* boot parition */
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC2 */
 
 /* USB Configs */
@@ -65,8 +62,6 @@
 #define CONFIG_FEC_MXC_PHYADDR          0x0
 #define CONFIG_FEC_XCV_TYPE             RMII
 #define CONFIG_ETHPRIME			"FEC"
-
-#define CONFIG_IMX_THERMAL
 
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
