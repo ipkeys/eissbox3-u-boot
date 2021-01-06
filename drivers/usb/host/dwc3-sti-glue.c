@@ -3,7 +3,7 @@
  * STiH407 family DWC3 specific Glue layer
  *
  * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
- * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
+ * Author(s): Patrice Chotard, <patrice.chotard@foss.st.com> for STMicroelectronics.
  */
 
 #include <common.h>
@@ -159,7 +159,7 @@ static int sti_dwc3_glue_bind(struct udevice *dev)
 			dwc3_node = node;
 	}
 
-	if (!ofnode_valid(node)) {
+	if (!ofnode_valid(dwc3_node)) {
 		pr_err("Can't find dwc3 subnode for %s\n", dev->name);
 		return -ENODEV;
 	}

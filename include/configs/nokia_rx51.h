@@ -66,8 +66,6 @@
  */
 #define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
 
-/* allow to overwrite serial and ethaddr */
-#define CONFIG_ENV_OVERWRITE
 #define CONFIG_SYS_BAUDRATE_TABLE { 4800, 9600, 19200, 38400, 57600, 115200 }
 
 /* USB device configuration */
@@ -76,14 +74,6 @@
 #define CONFIG_USBD_PRODUCTID		0x01c8
 #define CONFIG_USBD_MANUFACTURER	"Nokia"
 #define CONFIG_USBD_PRODUCT_NAME	"N900"
-
-/* commands to include */
-
-#define CONFIG_SYS_I2C
-
-/*
- * TWL4030
- */
 
 #define GPIO_SLIDE			71
 
@@ -103,7 +93,6 @@
 #define CONFIG_VIDEO_LOGO
 #define VIDEO_FB_16BPP_PIXEL_SWAP
 #define VIDEO_FB_16BPP_WORD_SWAP
-#define CONFIG_SPLASH_SCREEN
 
 /* functions for cfb_console */
 #define VIDEO_KBD_INIT_FCT		rx51_kp_init()
@@ -233,10 +222,6 @@ int rx51_kp_getc(struct stdio_dev *sdev);
 	"run emmcboot;" \
 	"run attachboot;" \
 	"echo"
-
-/*
- * Miscellaneous configurable options
- */
 
 /* default load address */
 #define CONFIG_SYS_LOAD_ADDR		(OMAP34XX_SDRC_CS0)

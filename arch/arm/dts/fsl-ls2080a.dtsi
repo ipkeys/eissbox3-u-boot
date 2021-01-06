@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0+ OR X11
 /*
- * Freescale ls2080a SOC common device tree source
+ * NXP ls2080a SOC common device tree source
  *
+ * Copyright 2020 NXP
  * Copyright 2013-2015 Freescale Semiconductor, Inc.
  */
 
@@ -24,6 +25,12 @@
 		#interrupt-cells = <3>;
 		interrupt-controller;
 		interrupts = <1 9 0x4>;
+	};
+
+	gic_lpi_base: syscon@0x80000000 {
+		compatible = "gic-lpi-base";
+		reg = <0x0 0x80000000 0x0 0x100000>;
+		max-gic-redistributors = <8>;
 	};
 
 	timer {
@@ -127,7 +134,7 @@
 		dr_mode = "host";
 	};
 
-	pcie@3400000 {
+	pcie1: pcie@3400000 {
 		compatible = "fsl,ls-pcie", "snps,dw-pcie";
 		reg = <0x00 0x03400000 0x0 0x80000   /* dbi registers */
 		       0x00 0x03480000 0x0 0x80000   /* lut registers */
@@ -142,7 +149,7 @@
 			  0x82000000 0x0 0x40000000 0x10 0x40000000 0x0 0x40000000>; /* non-prefetchable memory */
 	};
 
-	pcie@3500000 {
+	pcie2: pcie@3500000 {
 		compatible = "fsl,ls-pcie", "snps,dw-pcie";
 		reg = <0x00 0x03500000 0x0 0x80000   /* dbi registers */
 		       0x00 0x03580000 0x0 0x80000   /* lut registers */
@@ -157,7 +164,7 @@
 			  0x82000000 0x0 0x40000000 0x12 0x40000000 0x0 0x40000000>; /* non-prefetchable memory */
 	};
 
-	pcie@3600000 {
+	pcie3: pcie@3600000 {
 		compatible = "fsl,ls-pcie", "snps,dw-pcie";
 		reg = <0x00 0x03600000 0x0 0x80000   /* dbi registers */
 		       0x00 0x03680000 0x0 0x80000   /* lut registers */
@@ -172,7 +179,7 @@
 			  0x82000000 0x0 0x40000000 0x14 0x40000000 0x0 0x40000000>; /* non-prefetchable memory */
 	};
 
-	pcie@3700000 {
+	pcie4: pcie@3700000 {
 		compatible = "fsl,ls-pcie", "snps,dw-pcie";
 		reg = <0x00 0x03700000 0x0 0x80000   /* dbi registers */
 		       0x00 0x03780000 0x0 0x80000   /* lut registers */

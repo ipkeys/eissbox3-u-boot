@@ -18,6 +18,7 @@
 #include <fdt_support.h>
 #include <linux/bitops.h>
 #include <linux/libfdt.h>
+#include <linux/delay.h>
 #include <fsl-mc/fsl_mc.h>
 #include <env_internal.h>
 #include <efi_loader.h>
@@ -31,12 +32,13 @@
 #include "../common/vid.h"
 #include <fsl_immap.h>
 #include <asm/arch-fsl-layerscape/fsl_icid.h>
+#include "lx2160a.h"
 
 #ifdef CONFIG_EMC2305
 #include "../common/emc2305.h"
 #endif
 
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 #define CFG_MUX_I2C_SDHC(reg, value)		((reg & 0x3f) | value)
 #define SET_CFG_MUX1_SDHC1_SDHC(reg)		(reg & 0x3f)
 #define SET_CFG_MUX2_SDHC1_SPI(reg, value)	((reg & 0xcf) | value)
@@ -46,7 +48,7 @@
 #define SDHC1_BASE_PMUX_DSPI			2
 #define SDHC2_BASE_PMUX_DSPI			2
 #define IIC5_PMUX_SPI3				3
-#endif /* CONFIG_TARGET_LX2160AQDS */
+#endif /* CONFIG_TARGET_LX2160AQDS or CONFIG_TARGET_LX2162AQDS */
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -113,8 +115,8 @@ int board_early_init_f(void)
 
 #ifdef CONFIG_EMC2305
 	select_i2c_ch_pca9547(I2C_MUX_CH_EMC2305);
-	emc2305_init();
-	set_fan_speed(I2C_EMC2305_PWM);
+	emc2305_init(I2C_EMC2305_ADDR);
+	set_fan_speed(I2C_EMC2305_PWM, I2C_EMC2305_ADDR);
 	select_i2c_ch_pca9547(I2C_MUX_CH_DEFAULT);
 #endif
 
@@ -190,7 +192,7 @@ int board_fix_fdt(void *fdt)
 }
 #endif
 
-#if defined(CONFIG_TARGET_LX2160AQDS)
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 void esdhc_dspi_status_fixup(void *blob)
 {
 	const char esdhc0_path[] = "/soc/esdhc@2140000";
@@ -258,7 +260,7 @@ void esdhc_dspi_status_fixup(void *blob)
 
 int esdhc_status_fixup(void *blob, const char *compat)
 {
-#if defined(CONFIG_TARGET_LX2160AQDS)
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 	/* Enable esdhc and dspi DT nodes based on RCW fields */
 	esdhc_dspi_status_fixup(blob);
 #else
@@ -296,7 +298,7 @@ int checkboard(void)
 	enum boot_src src = get_boot_src();
 	char buf[64];
 	u8 sw;
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 	int clock;
 	static const char *const freq[] = {"100", "125", "156.25",
 					   "161.13", "322.26", "", "", "",
@@ -305,7 +307,7 @@ int checkboard(void)
 #endif
 
 	cpu_name(buf);
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 	printf("Board: %s-QDS, ", buf);
 #else
 	printf("Board: %s-RDB, ", buf);
@@ -338,7 +340,13 @@ int checkboard(void)
 			break;
 		}
 	}
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160ARDB)
+	printf("FPGA: v%d.%d\n", QIXIS_READ(scver), QIXIS_READ(tagdata));
+
+	puts("SERDES1 Reference: Clock1 = 161.13MHz Clock2 = 161.13MHz\n");
+	puts("SERDES2 Reference: Clock1 = 100MHz Clock2 = 100MHz\n");
+	puts("SERDES3 Reference: Clock1 = 100MHz Clock2 = 100MHz\n");
+#else
 	printf("FPGA: v%d (%s), build %d",
 	       (int)QIXIS_READ(scver), qixis_read_tag(buf),
 	       (int)qixis_read_minor());
@@ -349,37 +357,33 @@ int checkboard(void)
 	sw = QIXIS_READ(brdcfg[2]);
 	clock = sw >> 4;
 	printf("Clock1 = %sMHz ", freq[clock]);
+#if defined(CONFIG_TARGET_LX2160AQDS)
 	clock = sw & 0x0f;
 	printf("Clock2 = %sMHz", freq[clock]);
-
+#endif
 	sw = QIXIS_READ(brdcfg[3]);
 	puts("\nSERDES2 Reference : ");
 	clock = sw >> 4;
 	printf("Clock1 = %sMHz ", freq[clock]);
 	clock = sw & 0x0f;
-	printf("Clock2 = %sMHz", freq[clock]);
-
+	printf("Clock2 = %sMHz\n", freq[clock]);
+#if defined(CONFIG_TARGET_LX2160AQDS)
 	sw = QIXIS_READ(brdcfg[12]);
-	puts("\nSERDES3 Reference : ");
+	puts("SERDES3 Reference : ");
 	clock = sw >> 4;
 	printf("Clock1 = %sMHz Clock2 = %sMHz\n", freq[clock], freq[clock]);
-#else
-	printf("FPGA: v%d.%d\n", QIXIS_READ(scver), QIXIS_READ(tagdata));
-
-	puts("SERDES1 Reference: Clock1 = 161.13MHz Clock2 = 161.13MHz\n");
-	puts("SERDES2 Reference: Clock1 = 100MHz Clock2 = 100MHz\n");
-	puts("SERDES3 Reference: Clock1 = 100MHz Clock2 = 100MHz\n");
+#endif
 #endif
 	return 0;
 }
 
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 /*
  * implementation of CONFIG_ESDHC_DETECT_QUIRK Macro.
  */
 u8 qixis_esdhc_detect_quirk(void)
 {
-	/* for LX2160AQDS res1[1] @ offset 0x1A is SDHC1 Control/Status (SDHC1)
+	/*
 	 * SDHC1 Card ID:
 	 * Specifies the type of card installed in the SDHC1 adapter slot.
 	 * 000= (reserved)
@@ -391,8 +395,33 @@ u8 qixis_esdhc_detect_quirk(void)
 	 * 110= SDCard V2/V3 adapter installed.
 	 * 111= no adapter is installed.
 	 */
-	return ((QIXIS_READ(res1[1]) & QIXIS_SDID_MASK) !=
+	return ((QIXIS_READ(sdhc1) & QIXIS_SDID_MASK) !=
 		 QIXIS_ESDHC_NO_ADAPTER);
+}
+
+static void esdhc_adapter_card_ident(void)
+{
+	u8 card_id, val;
+
+	val = QIXIS_READ(sdhc1);
+	card_id = val & QIXIS_SDID_MASK;
+
+	switch (card_id) {
+	case QIXIS_ESDHC_ADAPTER_TYPE_SD:
+		/* Power cycle to card */
+		val &= ~QIXIS_SDHC1_S1V3;
+		QIXIS_WRITE(sdhc1, val);
+		mdelay(1);
+		val |= QIXIS_SDHC1_S1V3;
+		QIXIS_WRITE(sdhc1, val);
+		/* Route to SDHC1_VS */
+		val = QIXIS_READ(brdcfg[11]);
+		val |= QIXIS_SDHC1_VS;
+		QIXIS_WRITE(brdcfg[11], val);
+		break;
+	default:
+		break;
+	}
 }
 
 int config_board_mux(void)
@@ -501,6 +530,12 @@ int config_board_mux(void)
 
 	return 0;
 }
+
+int board_early_init_r(void)
+{
+	esdhc_adapter_card_ident();
+	return 0;
+}
 #elif defined(CONFIG_TARGET_LX2160ARDB)
 int config_board_mux(void)
 {
@@ -530,7 +565,7 @@ int config_board_mux(void)
 
 unsigned long get_board_sys_clk(void)
 {
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 	u8 sysclk_conf = QIXIS_READ(brdcfg[1]);
 
 	switch (sysclk_conf & 0x03) {
@@ -549,7 +584,7 @@ unsigned long get_board_sys_clk(void)
 
 unsigned long get_board_ddr_clk(void)
 {
-#ifdef CONFIG_TARGET_LX2160AQDS
+#if defined(CONFIG_TARGET_LX2160AQDS) || defined(CONFIG_TARGET_LX2162AQDS)
 	u8 ddrclk_conf = QIXIS_READ(brdcfg[1]);
 
 	switch ((ddrclk_conf & 0x30) >> 4) {
@@ -649,7 +684,7 @@ void board_quiesce_devices(void)
 #endif
 
 #ifdef CONFIG_OF_BOARD_SETUP
-int ft_board_setup(void *blob, bd_t *bd)
+int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	int i;
 	u16 mc_memory_bank = 0;

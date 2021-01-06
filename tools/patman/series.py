@@ -16,7 +16,7 @@ from patman import tools
 
 # Series-xxx tags that we understand
 valid_series = ['to', 'cc', 'version', 'changes', 'prefix', 'notes', 'name',
-                'cover_cc', 'process_log']
+                'cover_cc', 'process_log', 'links', 'patchwork_url']
 
 class Series(dict):
     """Holds information about a patch series, including all tags.
@@ -59,6 +59,9 @@ class Series(dict):
             line: Source line containing tag (useful for debug/error messages)
             name: Tag name (part after 'Series-')
             value: Tag value (part after 'Series-xxx: ')
+
+        Returns:
+            String warning if something went wrong, else None
         """
         # If we already have it, then add to our list
         name = name.replace('-', '_')
@@ -78,9 +81,10 @@ class Series(dict):
             else:
                 self[name] = value
         else:
-            raise ValueError("In %s: line '%s': Unknown 'Series-%s': valid "
+            return ("In %s: line '%s': Unknown 'Series-%s': valid "
                         "options are %s" % (commit.hash, line, name,
                             ', '.join(valid_series)))
+        return None
 
     def AddCommit(self, commit):
         """Add a commit into our list of commits
@@ -244,7 +248,7 @@ class Series(dict):
             add_maintainers: Either:
                 True/False to call the get_maintainers to CC maintainers
                 List of maintainers to include (for testing)
-            limit: Limit the length of the Cc list
+            limit: Limit the length of the Cc list (None if no limit)
         Return:
             Filename of temp file created
         """
@@ -263,7 +267,8 @@ class Series(dict):
             if type(add_maintainers) == type(cc):
                 cc += add_maintainers
             elif add_maintainers:
-                cc += get_maintainer.GetMaintainer(commit.patch)
+                dir_list = [os.path.join(gitutil.GetTopLevel(), 'scripts')]
+                cc += get_maintainer.GetMaintainer(dir_list, commit.patch)
             for x in set(cc) & set(settings.bounces):
                 print(col.Color(col.YELLOW, 'Skipping "%s"' % x))
             cc = set(cc) - set(settings.bounces)

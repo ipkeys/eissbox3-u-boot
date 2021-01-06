@@ -15,7 +15,6 @@
 #include <u-boot/crc.h>
 #else
 #include <linux/compiler.h>
-#include <linux/kconfig.h>
 #include <common.h>
 #include <errno.h>
 #include <log.h>
@@ -28,10 +27,12 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <bootm.h>
 #include <image.h>
 #include <bootstage.h>
+#include <linux/kconfig.h>
 #include <u-boot/crc.h>
 #include <u-boot/md5.h>
 #include <u-boot/sha1.h>
 #include <u-boot/sha256.h>
+#include <u-boot/sha512.h>
 
 /*****************************************************************************/
 /* New uImage format routines */
@@ -485,16 +486,16 @@ void fit_image_print(const void *fit, int image_noffset, const char *p)
 
 	ret = fit_image_get_data_and_size(fit, image_noffset, &data, &size);
 
-#ifndef USE_HOSTCC
-	printf("%s  Data Start:   ", p);
-	if (ret) {
-		printf("unavailable\n");
-	} else {
-		void *vdata = (void *)data;
+	if (!host_build()) {
+		printf("%s  Data Start:   ", p);
+		if (ret) {
+			printf("unavailable\n");
+		} else {
+			void *vdata = (void *)data;
 
-		printf("0x%08lx\n", (ulong)map_to_sysmem(vdata));
+			printf("0x%08lx\n", (ulong)map_to_sysmem(vdata));
+		}
 	}
-#endif
 
 	printf("%s  Data Size:    ", p);
 	if (ret)
@@ -790,17 +791,18 @@ static int fit_image_get_address(const void *fit, int noffset, char *name,
 		return -1;
 	}
 
-	if (len > sizeof(ulong)) {
-		printf("Unsupported %s address size\n", name);
-		return -1;
-	}
-
 	cell_len = len >> 2;
 	/* Use load64 to avoid compiling warning for 32-bit target */
 	while (cell_len--) {
 		load64 = (load64 << 32) | uimage_to_cpu(*cell);
 		cell++;
 	}
+
+	if (len > sizeof(ulong) && (uint32_t)(load64 >> 32)) {
+		printf("Unsupported %s address size\n", name);
+		return -1;
+	}
+
 	*load = (ulong)load64;
 
 	return 0;
@@ -1206,6 +1208,14 @@ int calculate_hash(const void *data, int data_len, const char *algo,
 		sha256_csum_wd((unsigned char *)data, data_len,
 			       (unsigned char *)value, CHUNKSZ_SHA256);
 		*value_len = SHA256_SUM_LEN;
+	} else if (IMAGE_ENABLE_SHA384 && strcmp(algo, "sha384") == 0) {
+		sha384_csum_wd((unsigned char *)data, data_len,
+			       (unsigned char *)value, CHUNKSZ_SHA384);
+		*value_len = SHA384_SUM_LEN;
+	} else if (IMAGE_ENABLE_SHA512 && strcmp(algo, "sha512") == 0) {
+		sha512_csum_wd((unsigned char *)data, data_len,
+			       (unsigned char *)value, CHUNKSZ_SHA512);
+		*value_len = SHA512_SUM_LEN;
 	} else if (IMAGE_ENABLE_MD5 && strcmp(algo, "md5") == 0) {
 		md5_wd((unsigned char *)data, data_len, value, CHUNKSZ_MD5);
 		*value_len = 16;
@@ -1410,7 +1420,6 @@ int fit_all_image_verify(const void *fit)
 	return 1;
 }
 
-#ifdef CONFIG_FIT_CIPHER
 static int fit_image_uncipher(const void *fit, int image_noffset,
 			      void **data, size_t *size)
 {
@@ -1434,7 +1443,6 @@ static int fit_image_uncipher(const void *fit, int image_noffset,
  out:
 	return ret;
 }
-#endif /* CONFIG_FIT_CIPHER */
 
 /**
  * fit_image_check_os - check whether image node is of a given os type
@@ -1476,9 +1484,8 @@ int fit_image_check_arch(const void *fit, int noffset, uint8_t arch)
 	uint8_t image_arch;
 	int aarch32_support = 0;
 
-#ifdef CONFIG_ARM64_SUPPORT_AARCH32
-	aarch32_support = 1;
-#endif
+	if (IS_ENABLED(CONFIG_ARM64_SUPPORT_AARCH32))
+		aarch32_support = 1;
 
 	if (fit_image_get_arch(fit, noffset, &image_arch))
 		return 0;
@@ -1731,12 +1738,19 @@ int fit_conf_get_node(const void *fit, const char *conf_uname)
 	if (conf_uname == NULL) {
 		/* get configuration unit name from the default property */
 		debug("No configuration specified, trying default...\n");
-		conf_uname = (char *)fdt_getprop(fit, confs_noffset,
-						 FIT_DEFAULT_PROP, &len);
-		if (conf_uname == NULL) {
-			fit_get_debug(fit, confs_noffset, FIT_DEFAULT_PROP,
-				      len);
-			return len;
+		if (!host_build() && IS_ENABLED(CONFIG_MULTI_DTB_FIT)) {
+			noffset = fit_find_config_node(fit);
+			if (noffset < 0)
+				return noffset;
+			conf_uname = fdt_get_name(fit, noffset, NULL);
+		} else {
+			conf_uname = (char *)fdt_getprop(fit, confs_noffset,
+							 FIT_DEFAULT_PROP, &len);
+			if (conf_uname == NULL) {
+				fit_get_debug(fit, confs_noffset, FIT_DEFAULT_PROP,
+					      len);
+				return len;
+			}
 		}
 		debug("Found default configuration: '%s'\n", conf_uname);
 	}
@@ -1967,13 +1981,13 @@ int fit_image_load(bootm_headers_t *images, ulong addr,
 	}
 
 	bootstage_mark(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);
-#if !defined(USE_HOSTCC) && !defined(CONFIG_SANDBOX)
-	if (!fit_image_check_target_arch(fit, noffset)) {
-		puts("Unsupported Architecture\n");
-		bootstage_error(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);
-		return -ENOEXEC;
+	if (!host_build() && IS_ENABLED(CONFIG_SANDBOX)) {
+		if (!fit_image_check_target_arch(fit, noffset)) {
+			puts("Unsupported Architecture\n");
+			bootstage_error(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);
+			return -ENOEXEC;
+		}
 	}
-#endif
 
 #ifndef USE_HOSTCC
 	fit_image_get_arch(fit, noffset, &os_arch);
@@ -2019,9 +2033,8 @@ int fit_image_load(bootm_headers_t *images, ulong addr,
 		return -ENOENT;
 	}
 
-#ifdef CONFIG_FIT_CIPHER
 	/* Decrypt data before uncompress/move */
-	if (IMAGE_ENABLE_DECRYPT) {
+	if (IS_ENABLED(CONFIG_FIT_CIPHER) && IMAGE_ENABLE_DECRYPT) {
 		puts("   Decrypting Data ... ");
 		if (fit_image_uncipher(fit, noffset, &buf, &size)) {
 			puts("Error\n");
@@ -2029,12 +2042,10 @@ int fit_image_load(bootm_headers_t *images, ulong addr,
 		}
 		puts("OK\n");
 	}
-#endif
 
-#if !defined(USE_HOSTCC) && defined(CONFIG_FIT_IMAGE_POST_PROCESS)
 	/* perform any post-processing on the image data */
-	board_fit_image_post_process(&buf, &size);
-#endif
+	if (!host_build() && IS_ENABLED(CONFIG_FIT_IMAGE_POST_PROCESS))
+		board_fit_image_post_process(&buf, &size);
 
 	len = (ulong)size;
 

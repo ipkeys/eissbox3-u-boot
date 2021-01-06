@@ -293,7 +293,7 @@ static int gpio_sunxi_bind(struct udevice *parent)
 	if (plat)
 		return 0;
 
-	ctlr = (struct sunxi_gpio_reg *)devfdt_get_addr(parent);
+	ctlr = dev_read_addr_ptr(parent);
 	for (bank = 0; bank < soc_data->no_banks; bank++) {
 		struct sunxi_gpio_platdata *plat;
 		struct udevice *dev;
@@ -351,6 +351,7 @@ static const struct udevice_id sunxi_gpio_ids[] = {
 	ID("allwinner,sun8i-a83t-pinctrl",	a_all),
 	ID("allwinner,sun8i-h3-pinctrl",	a_all),
 	ID("allwinner,sun8i-r40-pinctrl",	a_all),
+	ID("allwinner,sun8i-v3-pinctrl",	a_all),
 	ID("allwinner,sun8i-v3s-pinctrl",	a_all),
 	ID("allwinner,sun9i-a80-pinctrl",	a_all),
 	ID("allwinner,sun50i-a64-pinctrl",	a_all),

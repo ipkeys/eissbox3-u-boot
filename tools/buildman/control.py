@@ -185,10 +185,16 @@ def DoBuildman(options, args, toolchains=None, make_func=None, boards=None,
         if not os.path.exists(options.output_dir):
             os.makedirs(options.output_dir)
         board_file = os.path.join(options.output_dir, 'boards.cfg')
-        genboardscfg = os.path.join(options.git, 'tools/genboardscfg.py')
+        our_path = os.path.dirname(os.path.realpath(__file__))
+        genboardscfg = os.path.join(our_path, '../genboardscfg.py')
+        if not os.path.exists(genboardscfg):
+            genboardscfg = os.path.join(options.git, 'tools/genboardscfg.py')
         status = subprocess.call([genboardscfg, '-q', '-o', board_file])
         if status != 0:
-            sys.exit("Failed to generate boards.cfg")
+            # Older versions don't support -q
+            status = subprocess.call([genboardscfg, '-o', board_file])
+            if status != 0:
+                sys.exit("Failed to generate boards.cfg")
 
         boards = board.Boards()
         boards.ReadBoards(board_file)
@@ -270,14 +276,14 @@ def DoBuildman(options, args, toolchains=None, make_func=None, boards=None,
                                                       options.branch)
             upstream_commit = gitutil.GetUpstream(options.git_dir,
                                                   options.branch)
-            series = patchstream.GetMetaDataForList(upstream_commit,
+            series = patchstream.get_metadata_for_list(upstream_commit,
                 options.git_dir, 1, series=None, allow_overwrite=True)
 
-            series = patchstream.GetMetaDataForList(range_expr,
+            series = patchstream.get_metadata_for_list(range_expr,
                     options.git_dir, None, series, allow_overwrite=True)
         else:
             # Honour the count
-            series = patchstream.GetMetaDataForList(options.branch,
+            series = patchstream.get_metadata_for_list(options.branch,
                     options.git_dir, count, series=None, allow_overwrite=True)
     else:
         series = None

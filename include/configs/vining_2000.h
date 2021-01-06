@@ -73,14 +73,10 @@
 #define CONFIG_PCIE_IMX_PERST_GPIO	IMX_GPIO_NR(4, 6)
 #endif
 
-#define CONFIG_IMX_THERMAL
-
 #define CONFIG_IMX6_PWM_PER_CLK 66000000
 
 #ifdef CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		0 /* USDHC4 eMMC */
 /* 0=user, 1=boot0, 2=boot1, * 4..7=general0..3. */
-#define CONFIG_SYS_MMC_ENV_PART		1 /* boot0 */
 #endif
 
 #ifdef CONFIG_SPL_BUILD

@@ -20,7 +20,6 @@
 #define CONFIG_SYS_FLASH_BASE		0x20000000
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_BOARD_EARLY_INIT_F	1
 
 /* DDR */
 #define CONFIG_FSL_DDR_INTERACTIVE	/* Interactive debugging */
@@ -53,7 +52,7 @@
 #define CONFIG_SYS_LOAD_ADDR	(CONFIG_SYS_DDR_SDRAM_BASE + 0x10000000)
 
 /* SMP Definitinos  */
-#define CPU_RELEASE_ADDR		secondary_boot_func
+#define CPU_RELEASE_ADDR		secondary_boot_addr
 
 /* Generic Timer Definitions */
 /*
@@ -78,7 +77,6 @@
 					(void *)CONFIG_SYS_SERIAL1, \
 					(void *)CONFIG_SYS_SERIAL2, \
 					(void *)CONFIG_SYS_SERIAL3 }
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /* MC firmware */
@@ -151,7 +149,9 @@
 /* USB */
 #ifdef CONFIG_USB
 #define CONFIG_HAS_FSL_XHCI_USB
+#ifndef CONFIG_TARGET_LX2162AQDS
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2
+#endif
 #endif
 
 /* FlexSPI */
@@ -171,11 +171,6 @@ unsigned long get_board_ddr_clk(void);
 
 #define CONFIG_HWCONFIG
 #define HWCONFIG_BUFFER_SIZE		128
-
-#define CONFIG_SYS_MMC_ENV_DEV          0
-
-/* Allow to overwrite serial and ethaddr */
-#define CONFIG_ENV_OVERWRITE
 
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
@@ -237,7 +232,7 @@ unsigned long get_board_ddr_clk(void);
 	"kernel_size=0x2800000\0"		\
 	"kernel_addr_sd=0x8000\0"		\
 	"kernelhdr_addr_sd=0x3000\0"            \
-	"kernel_size_sd=0x1d000\0"              \
+	"kernel_size_sd=0x14000\0"              \
 	"kernelhdr_size_sd=0x20\0"              \
 	"console=ttyAMA0,38400n8\0"		\
 	BOOTENV					\

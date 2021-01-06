@@ -32,7 +32,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* Serial console */
-#define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART4_BASE
 #define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
 
@@ -151,13 +150,6 @@
 /* APBH DMA is required for NAND support */
 #endif
 
-/* SPI Flash Configs */
-#if defined(CONFIG_SPL_BUILD)
-#undef CONFIG_DM_SPI
-#undef CONFIG_DM_SPI_FLASH
-#undef CONFIG_SPI_FLASH_MTD
-#endif
-
 /* Ethernet */
 #define CONFIG_FEC_MXC
 #define CONFIG_FEC_MXC_PHYADDR		0
@@ -204,10 +196,6 @@
 
 /* Display */
 #define CONFIG_IMX_HDMI
-
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_SPLASH_SOURCE
-#define CONFIG_VIDEO_BMP_RLE8
 
 #define CONFIG_VIDEO_LOGO
 #define CONFIG_VIDEO_BMP_LOGO
