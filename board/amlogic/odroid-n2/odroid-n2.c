@@ -10,18 +10,31 @@
 #include <init.h>
 #include <net.h>
 #include <asm/io.h>
+#include <asm/arch/boot.h>
 #include <asm/arch/sm.h>
 #include <asm/arch/eth.h>
+#include <asm/arch/boot.h>
 
 #define EFUSE_MAC_OFFSET	20
 #define EFUSE_MAC_SIZE		12
 #define MAC_ADDR_LEN		6
+
+int mmc_get_env_dev(void)
+{
+	if (meson_get_boot_device() == BOOT_DEVICE_EMMC)
+		return 1;
+	return 0;
+}
 
 int misc_init_r(void)
 {
 	u8 mac_addr[MAC_ADDR_LEN];
 	char efuse_mac_addr[EFUSE_MAC_SIZE], tmp[3];
 	ssize_t len;
+
+	if (IS_ENABLED(CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG) &&
+	    meson_get_soc_rev(tmp, sizeof(tmp)) > 0)
+		env_set("soc_rev", tmp);
 
 	meson_eth_init(PHY_INTERFACE_MODE_RGMII, 0);
 

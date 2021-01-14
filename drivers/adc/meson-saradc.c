@@ -282,7 +282,7 @@ static int meson_saradc_read_raw_sample(struct meson_saradc_priv *priv,
 	regmap_read(priv->regmap, MESON_SAR_ADC_FIFO_RD, &regval);
 	fifo_chan = FIELD_GET(MESON_SAR_ADC_FIFO_RD_CHAN_ID_MASK, regval);
 	if (fifo_chan != channel) {
-		printf("ADC FIFO entry belongs to channel %d instead of %d\n",
+		printf("ADC FIFO entry belongs to channel %u instead of %u\n",
 		       fifo_chan, channel);
 		return -EINVAL;
 	}
@@ -512,8 +512,11 @@ static int meson_saradc_init(struct meson_saradc_priv *priv)
 	 * reading the temperature sensor.
 	 */
 	regmap_read(priv->regmap, MESON_SAR_ADC_REG3, &regval);
-	if (regval & MESON_SAR_ADC_REG3_BL30_INITIALIZED)
-		return 0;
+	if (regval & MESON_SAR_ADC_REG3_BL30_INITIALIZED) {
+		regmap_read(priv->regmap, MESON_SAR_ADC_REG3, &regval);
+		if (regval & MESON_SAR_ADC_REG3_ADC_EN)
+			return 0;
+	}
 
 	meson_saradc_stop_sample_engine(priv);
 
@@ -675,9 +678,9 @@ static int meson_saradc_probe(struct udevice *dev)
 	return 0;
 }
 
-int meson_saradc_ofdata_to_platdata(struct udevice *dev)
+int meson_saradc_of_to_plat(struct udevice *dev)
 {
-	struct adc_uclass_platdata *uc_pdata = dev_get_uclass_platdata(dev);
+	struct adc_uclass_plat *uc_pdata = dev_get_uclass_plat(dev);
 	struct meson_saradc_priv *priv = dev_get_priv(dev);
 
 	priv->data = (struct meson_saradc_data *)dev_get_driver_data(dev);
@@ -711,6 +714,8 @@ static const struct udevice_id meson_saradc_ids[] = {
 	  .data = (ulong)&gxl_saradc_data },
 	{ .compatible = "amlogic,meson-gxm-saradc",
 	  .data = (ulong)&gxl_saradc_data },
+	{ .compatible = "amlogic,meson-g12a-saradc",
+	  .data = (ulong)&gxl_saradc_data },
 	{ }
 };
 
@@ -720,6 +725,6 @@ U_BOOT_DRIVER(meson_saradc) = {
 	.of_match	= meson_saradc_ids,
 	.ops		= &meson_saradc_ops,
 	.probe		= meson_saradc_probe,
-	.ofdata_to_platdata = meson_saradc_ofdata_to_platdata,
-	.priv_auto_alloc_size = sizeof(struct meson_saradc_priv),
+	.of_to_plat = meson_saradc_of_to_plat,
+	.priv_auto	= sizeof(struct meson_saradc_priv),
 };

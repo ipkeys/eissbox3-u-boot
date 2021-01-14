@@ -345,7 +345,7 @@ int clk_set_defaults(struct udevice *dev, int stage)
 {
 	int ret;
 
-	if (!dev_of_valid(dev))
+	if (!dev_has_ofnode(dev))
 		return 0;
 
 	/* If this not in SPL and pre-reloc state, don't take any action. */
@@ -521,6 +521,21 @@ long long clk_get_parent_rate(struct clk *clk)
 		pclk->rate = clk_get_rate(pclk);
 
 	return pclk->rate;
+}
+
+ulong clk_round_rate(struct clk *clk, ulong rate)
+{
+	const struct clk_ops *ops;
+
+	debug("%s(clk=%p, rate=%lu)\n", __func__, clk, rate);
+	if (!clk_valid(clk))
+		return 0;
+
+	ops = clk_dev_ops(clk->dev);
+	if (!ops->round_rate)
+		return -ENOSYS;
+
+	return ops->round_rate(clk, rate);
 }
 
 ulong clk_set_rate(struct clk *clk, ulong rate)

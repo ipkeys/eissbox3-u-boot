@@ -113,6 +113,22 @@ config SPL_DM_SEQ_ALIAS
 	  numbered devices (e.g. serial0 = &serial0). This feature can be
 	  disabled if it is not required, to save code space in SPL.
 
+config SPL_DM_INLINE_OFNODE
+	bool "Inline some ofnode functions which are seldom used in SPL"
+	depends on SPL_DM
+	default y
+	help
+	  This applies to several ofnode functions (see ofnode.h) which are
+	  seldom used. Inlining them can help reduce code size.
+
+config TPL_DM_INLINE_OFNODE
+	bool "Inline some ofnode functions which are seldom used in TPL"
+	depends on TPL_DM
+	default y
+	help
+	  This applies to several ofnode functions (see ofnode.h) which are
+	  seldom used. Inlining them can help reduce code size.
+
 config REGMAP
 	bool "Support register maps"
 	depends on DM
@@ -230,6 +246,18 @@ config OF_TRANSLATE
 	  If this option is not enabled, simple_bus_translate() will be
 	  used for the address translation. This function is faster and
 	  smaller in size than fdt_translate_address().
+
+config OF_TRANSLATE_ZERO_SIZE_CELLS
+	bool "Enable translation for zero size cells"
+	depends on OF_TRANSLATE
+	default n
+	help
+	  The routine used to translate an FDT address into a physical CPU
+	  address was developed by IBM. It considers that crossing any level
+	  with #size-cells = <0> makes translation impossible, even if it is
+	  not the way it was specified.
+	  Enabling this option makes translation possible even in the case
+	  of crossing levels with #size-cells = <0>.
 
 config SPL_OF_TRANSLATE
 	bool "Translate addresses using fdt_translate_address in SPL"

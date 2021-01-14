@@ -281,8 +281,10 @@ int dev_read_alias_seq(const struct udevice *dev, int *devnump)
 
 	if (ofnode_is_np(node)) {
 		ret = of_alias_get_id(ofnode_to_np(node), uc_name);
-		if (ret >= 0)
+		if (ret >= 0) {
 			*devnump = ret;
+			ret = 0;
+		}
 	} else {
 #if CONFIG_IS_ENABLED(OF_CONTROL)
 		ret = fdtdec_get_alias_seq(gd->fdt_blob, uc_name,
@@ -376,4 +378,10 @@ int dev_read_pci_bus_range(const struct udevice *dev,
 	res->end = *values;
 
 	return 0;
+}
+
+int dev_decode_display_timing(const struct udevice *dev, int index,
+			      struct display_timing *config)
+{
+	return ofnode_decode_display_timing(dev_ofnode(dev), index, config);
 }
